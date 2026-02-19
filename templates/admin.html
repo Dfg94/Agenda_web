@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#e84b7a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Panel Admin</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <div class="card">
+
+        <h1>Panel Admin</h1>
+
+        <div class="grid">
+
+            <div class="box">
+                <h3>Nueva cita</h3>
+                <input type="date" id="fecha">
+                <input id="cliente" placeholder="Cliente">
+                <input id="hora" placeholder="Hora">
+
+                <select id="servicio">
+                    {% for s,d in servicios.items() %}
+                    <option value="{{s}}">{{s}} ({{d}} min)</option>
+                    {% endfor %}
+                </select>
+
+                <button onclick="crear()">Crear cita</button>
+            </div>
+
+
+            <div class="box">
+                <h3>Horarios manuales</h3>
+                <input type="date" id="fechaExtra">
+                <input id="horaExtra" placeholder="Hora">
+                <button onclick="addExtra()">Agregar</button>
+
+                {% for e in extras %}
+                <div class="mini">
+                    {{e.fecha}} — {{e.hora}}
+                    <button onclick="delExtra({{loop.index0}})">X</button>
+                </div>
+                {% endfor %}
+            </div>
+
+
+            <div class="box">
+                <h3>Bloquear horario</h3>
+                <input type="date" id="fechaBloq">
+                <input id="horaBloq" placeholder="Hora">
+                <button onclick="bloquear()">Bloquear</button>
+
+                {% for b in bloqueados %}
+                <div class="mini">
+                    {{b.fecha}} — {{b.hora}}
+                    <button onclick="desbloquear({{loop.index0}})">Quitar</button>
+                </div>
+                {% endfor %}
+            </div>
+
+
+            <div class="box">
+                <h3>Bloquear día</h3>
+                <input type="date" id="diaBloq">
+                <button onclick="bloquearDia()">Bloquear</button>
+
+                {% for d in dias_bloqueados %}
+                <div class="mini">
+                    {{d}}
+                    <button onclick="desbloquearDia({{loop.index0}})">Quitar</button>
+                </div>
+                {% endfor %}
+            </div>
+
+
+            <div class="box full">
+                <h3>Citas guardadas</h3>
+
+                {% for r in reservas %}
+                <div class="mini">
+                    {{r.fecha}} — {{r.inicio}} — {{r.cliente}} — {{r.servicio}}
+                    <button onclick="borrar({{loop.index0}})">Eliminar</button>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <script>
+
+        function crear() {
+            fetch("/crear", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fecha: fecha.value,
+                    cliente: cliente.value,
+                    hora: hora.value,
+                    servicio: servicio.value
+                })
+            }).then(() => location.reload())
+        }
+
+        function borrar(i) {
+            fetch("/eliminar", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ index: i })
+            }).then(() => location.reload())
+        }
+
+        function addExtra() {
+            fetch("/agregar_extra", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fecha: fechaExtra.value, hora: horaExtra.value })
+            }).then(() => location.reload())
+        }
+
+        function delExtra(i) {
+            fetch("/borrar_extra", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ index: i })
+            }).then(() => location.reload())
+        }
+
+        function bloquear() {
+            fetch("/bloquear", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fecha: fechaBloq.value, hora: horaBloq.value })
+            }).then(() => location.reload())
+        }
+
+        function desbloquear(i) {
+            fetch("/desbloquear", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ index: i })
+            }).then(() => location.reload())
+        }
+
+        function bloquearDia() {
+            fetch("/bloquear_dia", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fecha: diaBloq.value })
+            }).then(() => location.reload())
+        }
+
+        function desbloquearDia(i) {
+            fetch("/desbloquear_dia", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ index: i })
+            }).then(() => location.reload())
+        }
+
+    </script>
+
+</body>
+
+</html>

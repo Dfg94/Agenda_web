@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#e84b7a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Agenda Beauty">
+    <title>Agenda Beauty</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/static/icon-192.svg">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <div class="card">
+
+        <h1>Agenda Beauty</h1>
+
+        <div class="calendar">
+            <div class="cal-header">
+                <button onclick="mes(-1)">‹</button>
+                <span id="mesTitulo"></span>
+                <button onclick="mes(1)">›</button>
+            </div>
+
+            <div class="semana">
+                <div>Lun</div>
+                <div>Mar</div>
+                <div>Mié</div>
+                <div>Jue</div>
+                <div>Vie</div>
+                <div>Sáb</div>
+                <div>Dom</div>
+            </div>
+
+            <div class="dias" id="dias"></div>
+        </div>
+
+
+        <h2>Horarios disponibles</h2>
+        <div id="horarios"></div>
+
+        <h2>Reservar turno</h2>
+
+        <input id="cliente" placeholder="Nombre cliente">
+
+        <select id="servicio">
+            {% for s,d in servicios.items() %}
+            <option value="{{s}}">{{s}} ({{d}} min)</option>
+            {% endfor %}
+        </select>
+
+        <button onclick="reservar()">Reservar cita</button>
+
+        <h2>Citas del día</h2>
+        <div id="lista"></div>
+
+    </div>
+
+
+
+    <script>
+
+        let fechaActual = new Date()
+        let fechaSeleccionada = null
+        let horaSel = null
+
+        function renderCalendar() {
+
+            let año = fechaActual.getFullYear()
+            let mes = fechaActual.getMonth()
+
+            let primerDia = new Date(año, mes, 1).getDay()
+            if (primerDia === 0) primerDia = 7
+
+            let diasMes = new Date(año, mes + 1, 0).getDate()
+
+            let meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+            mesTitulo.innerText = meses[mes] + " " + año
+
+            let html = ""
+
+            for (let i = 1; i < primerDia; i++) html += "<div></div>"
+
+            for (let d = 1; d <= diasMes; d++) {
+                let fecha = año + "-" + String(mes + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0")
+                html += `<div class="dia" onclick="seleccionar('${fecha}',this)">${d}</div>`
+            }
+
+            dias.innerHTML = html
+        }
+
+        function mes(n) {
+            fechaActual.setMonth(fechaActual.getMonth() + n)
+            renderCalendar()
+        }
+
+        function seleccionar(f, el) {
+            document.querySelectorAll(".dia").forEach(x => x.classList.remove("activa"))
+            el.classList.add("activa")
+            fechaSeleccionada = f
+            cargar()
+        }
+
+        function cargar() {
+
+            fetch("/horarios?fecha=" + fechaSeleccionada)
+                .then(r => r.json())
+                .then(data => {
+
+                    horarios.innerHTML = ""
+                    data.forEach(h => {
+                        horarios.innerHTML += `<button class="hora" onclick="seleccionarHora('${h}',this)">${h}</button>`
+                    })
+
+                    lista.innerHTML = ""
+
+                    fetch("/reservas?fecha=" + fechaSeleccionada)
+                        .then(r => r.json())
+                        .then(r => {
+                            r.forEach(x => {
+                                lista.innerHTML += `<div class="mini">${x.inicio} — ${x.cliente}</div>`
+                            })
+                        })
+                })
+        }
+
+        function seleccionarHora(h, el) {
+            document.querySelectorAll(".hora").forEach(x => x.classList.remove("activaHora"))
+            el.classList.add("activaHora")
+            horaSel = h
+        }
+
+        function reservar() {
+
+            if (!fechaSeleccionada || !horaSel) {
+                alert("Selecciona día y hora")
+                return
+            }
+
+            fetch("/crear", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fecha: fechaSeleccionada,
+                    inicio: horaSel,
+                    cliente: cliente.value,
+                    servicio: servicio.value
+                })
+            })
+                .then(() => {
+
+                    horaSel = null
+                    cliente.value = ""
+
+                    cargar()
+
+                })
+        }
+
+        renderCalendar()
+
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+        }
+    </script>
+</body>
+
+</html>
