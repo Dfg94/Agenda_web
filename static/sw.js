@@ -1,4 +1,4 @@
-const CACHE_NAME = 'agenda-beauty-v1';
+const CACHE_NAME = 'agenda-beauty-v2';
 const ASSETS = [
     '/',
     '/admin',
