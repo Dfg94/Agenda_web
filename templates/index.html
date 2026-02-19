@@ -12,7 +12,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/static/icon-192.svg">
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=3">
 </head>
 
 <body>
@@ -20,6 +20,11 @@
     <div class="card">
 
         <h1>Agenda Beauty</h1>
+
+        <div id="estado"
+            style="display:none;text-align:center;padding:12px;background:#fff3cd;border-radius:12px;margin-bottom:15px;font-size:0.9em;">
+            ⏳ Conectando con el servidor...
+        </div>
 
         <div class="calendar">
             <div class="cal-header">
@@ -62,13 +67,31 @@
 
     </div>
 
-
-
     <script>
 
         let fechaActual = new Date()
         let fechaSeleccionada = null
         let horaSel = null
+
+        // Fetch con reintentos para cuando el servidor está dormido
+        async function fetchRetry(url, opciones, intentos = 3) {
+            estado.style.display = 'block'
+            for (let i = 0; i < intentos; i++) {
+                try {
+                    const r = await fetch(url, opciones)
+                    estado.style.display = 'none'
+                    return r
+                } catch (e) {
+                    if (i < intentos - 1) {
+                        estado.textContent = '⏳ El servidor se está despertando... (intento ' + (i + 2) + ')'
+                        await new Promise(ok => setTimeout(ok, 3000))
+                    }
+                }
+            }
+            estado.textContent = '❌ No se pudo conectar al servidor'
+            estado.style.background = '#f8d7da'
+            return null
+        }
 
         function renderCalendar() {
 
@@ -107,27 +130,29 @@
             cargar()
         }
 
-        function cargar() {
+        async function cargar() {
 
-            fetch("/horarios?fecha=" + fechaSeleccionada)
-                .then(r => r.json())
-                .then(data => {
+            horarios.innerHTML = '<div style="text-align:center;padding:10px;opacity:0.5">Cargando...</div>'
 
-                    horarios.innerHTML = ""
-                    data.forEach(h => {
-                        horarios.innerHTML += `<button class="hora" onclick="seleccionarHora('${h}',this)">${h}</button>`
-                    })
+            const r = await fetchRetry("/horarios?fecha=" + fechaSeleccionada)
+            if (!r) return
 
-                    lista.innerHTML = ""
+            const data = await r.json()
 
-                    fetch("/reservas?fecha=" + fechaSeleccionada)
-                        .then(r => r.json())
-                        .then(r => {
-                            r.forEach(x => {
-                                lista.innerHTML += `<div class="mini">${x.inicio} — ${x.cliente}</div>`
-                            })
-                        })
-                })
+            horarios.innerHTML = ""
+            data.forEach(h => {
+                horarios.innerHTML += `<button class="hora" onclick="seleccionarHora('${h}',this)">${h}</button>`
+            })
+
+            lista.innerHTML = ""
+
+            const r2 = await fetchRetry("/reservas?fecha=" + fechaSeleccionada)
+            if (!r2) return
+
+            const reservas = await r2.json()
+            reservas.forEach(x => {
+                lista.innerHTML += `<div class="mini">${x.inicio} — ${x.cliente}</div>`
+            })
         }
 
         function seleccionarHora(h, el) {
@@ -136,14 +161,14 @@
             horaSel = h
         }
 
-        function reservar() {
+        async function reservar() {
 
             if (!fechaSeleccionada || !horaSel) {
                 alert("Selecciona día y hora")
                 return
             }
 
-            fetch("/crear", {
+            const r = await fetchRetry("/crear", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -153,14 +178,12 @@
                     servicio: servicio.value
                 })
             })
-                .then(() => {
 
-                    horaSel = null
-                    cliente.value = ""
-
-                    cargar()
-
-                })
+            if (r) {
+                horaSel = null
+                cliente.value = ""
+                cargar()
+            }
         }
 
         renderCalendar()
@@ -168,8 +191,11 @@
     </script>
 
     <script>
+        // Desregistrar service workers viejos que cachen contenido obsoleto
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                regs.forEach(r => r.unregister())
+            })
         }
     </script>
 </body>
