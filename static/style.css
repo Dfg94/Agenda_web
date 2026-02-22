@@ -93,11 +93,25 @@ h2 {
     text-align: center;
     cursor: pointer;
     font-size: 0.9em;
+    position: relative;
 }
 
 .dia.activa {
     background: #e84b7a;
     color: white;
+}
+
+.punto {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e84b7a;
+    margin: 2px auto 0;
+}
+
+.dia.activa .punto {
+    background: white;
 }
 
 input,

@@ -9,7 +9,7 @@
     <title>Panel Admin</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="/static/style.css?v=4">
 </head>
 
 <body>
@@ -83,13 +83,31 @@
             <div class="box full">
                 <h3>Citas guardadas</h3>
 
-                {% for r in reservas %}
-                <div class="mini">
-                    {{r.fecha}} — {{r.inicio}} — {{r.cliente}} — {{r.servicio}}
-                    <button onclick="borrar({{loop.index0}})">Eliminar</button>
+                <!-- Calendario admin -->
+                <div class="calendar" style="margin-top:14px;">
+                    <div class="cal-header">
+                        <button onclick="adminMes(-1)" type="button">‹</button>
+                        <span id="adminMesTitulo"></span>
+                        <button onclick="adminMes(1)" type="button">›</button>
+                    </div>
+                    <div class="semana">
+                        <div>Lun</div>
+                        <div>Mar</div>
+                        <div>Mié</div>
+                        <div>Jue</div>
+                        <div>Vie</div>
+                        <div>Sáb</div>
+                        <div>Dom</div>
+                    </div>
+                    <div class="dias" id="adminDias"></div>
                 </div>
-                {% endfor %}
 
+                <!-- Lista filtrada por día -->
+                <div id="adminLista" style="margin-top:10px;">
+                    <p style="text-align:center;opacity:0.45;font-size:0.9em;padding:10px 0;">
+                        Selecciona un día para ver las citas
+                    </p>
+                </div>
             </div>
 
         </div>
@@ -159,6 +177,71 @@
                 body: JSON.stringify({ index: i })
             }).then(() => location.reload())
         }
+
+        // ─── Calendario de citas ───────────────────────────────────────────
+        const todasReservas = {{ reservas | tojson }};
+
+        let adminFecha = new Date();
+        let adminFechaSel = null;
+
+        const mesesNombre = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        function adminRenderCalendar() {
+            const año = adminFecha.getFullYear();
+            const mes = adminFecha.getMonth();
+            adminMesTitulo.innerText = mesesNombre[mes] + " " + año;
+
+            let primerDia = new Date(año, mes, 1).getDay();
+            if (primerDia === 0) primerDia = 7;
+            const diasMes = new Date(año, mes + 1, 0).getDate();
+
+            // Fechas con citas en este mes
+            const conCitas = new Set(
+                todasReservas
+                    .filter(r => r.fecha.startsWith(año + "-" + String(mes + 1).padStart(2, "0")))
+                    .map(r => r.fecha)
+            );
+
+            let html = "";
+            for (let i = 1; i < primerDia; i++) html += "<div></div>";
+            for (let d = 1; d <= diasMes; d++) {
+                const f = año + "-" + String(mes + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+                const tieneC = conCitas.has(f);
+                const esActiva = f === adminFechaSel ? " activa" : "";
+                html += `<div class="dia${esActiva}${tieneC ? " con-cita" : ""}" onclick="adminSeleccionar('${f}',this)">${d}${tieneC ? '<span class="punto"></span>' : ""}</div>`;
+            }
+            adminDias.innerHTML = html;
+        }
+
+        function adminMes(n) {
+            adminFecha.setMonth(adminFecha.getMonth() + n);
+            adminRenderCalendar();
+        }
+
+        function adminSeleccionar(f, el) {
+            document.querySelectorAll("#adminDias .dia").forEach(x => x.classList.remove("activa"));
+            el.classList.add("activa");
+            adminFechaSel = f;
+            adminMostrarCitas(f);
+        }
+
+        function adminMostrarCitas(fecha) {
+            const citas = todasReservas.filter(r => r.fecha === fecha);
+            if (citas.length === 0) {
+                adminLista.innerHTML = `<p style="text-align:center;opacity:0.45;font-size:0.9em;padding:10px 0;">Sin citas el ${fecha}</p>`;
+                return;
+            }
+            adminLista.innerHTML = citas.map(r => {
+                const idx = todasReservas.indexOf(r);
+                return `<div class="mini">
+                    <strong>${r.inicio}</strong> — ${r.cliente} — ${r.servicio}
+                    <button onclick="borrar(${idx})" style="margin-top:6px;">Eliminar</button>
+                </div>`;
+            }).join("");
+        }
+
+        adminRenderCalendar();
 
     </script>
 
