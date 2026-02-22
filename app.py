@@ -106,7 +106,9 @@ def generar_horas(fecha):
 
 @app.route("/")
 def home():
-    return render_template("index.html",servicios=servicios)
+    d=cargar()
+    dias_extras=list(set([e["fecha"] for e in d.get("extras",[])]))
+    return render_template("index.html",servicios=servicios,dias_extras=dias_extras)
 
 
 @app.route("/horarios")

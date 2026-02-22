@@ -12,7 +12,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-    <link rel="stylesheet" href="/static/style.css?v=12">
+    <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 
 <body>
@@ -69,6 +69,7 @@
     </div>
 
     <script>
+        const diasExtras = {{ dias_extras | tojson }};
 
         let fechaActual = new Date()
         let fechaSeleccionada = null
@@ -122,7 +123,10 @@
                 let esPasado = fechaObj < fHoy
                 let diaSemana = fechaObj.getDay()
                 let esFinde = (diaSemana === 0 || diaSemana === 6)
-                let estaBloqueado = esPasado || esFinde
+
+                // Si es pasado, bloqueado sí o sí.
+                // Si es finde, bloqueado A MENOS QUE esté en diasExtras (el admin puso horarios).
+                let estaBloqueado = esPasado || (esFinde && !diasExtras.includes(fecha))
 
                 let claseExtra = fecha === hoyStr ? " hoy" : (estaBloqueado ? " pasado" : "")
                 let clickEvent = estaBloqueado ? "" : `onclick="seleccionar('${fecha}',this)"`
