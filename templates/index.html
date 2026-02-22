@@ -7,19 +7,19 @@
     <meta name="theme-color" content="#e84b7a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Agenda Beauty">
-    <title>Agenda Beauty</title>
+    <meta name="apple-mobile-web-app-title" content="Girls Date">
+    <title>Girls Date</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/static/icon-192.svg">
-    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 
 <body>
 
     <div class="card">
 
-        <h1>Agenda Beauty</h1>
+        <h1>Girls Date</h1>
 
         <div id="estado"
             style="display:none;text-align:center;padding:12px;background:#fff3cd;border-radius:12px;margin-bottom:15px;font-size:0.9em;">
@@ -53,6 +53,7 @@
         <h2>Reservar turno</h2>
 
         <input id="cliente" placeholder="Nombre cliente">
+        <input type="tel" id="telefono" placeholder="Teléfono" style="margin-top:10px;">
 
         <select id="servicio">
             {% for s,d in servicios.items() %}
@@ -163,10 +164,14 @@
 
         async function reservar() {
 
-            if (!fechaSeleccionada || !horaSel) {
-                alert("Selecciona día y hora")
+            if (!fechaSeleccionada || !horaSel || !cliente.value || !telefono.value) {
+                alert("Por favor, completa tu nombre y número de teléfono, selecciona día y hora.")
                 return
             }
+
+            const nombreCliente = cliente.value;
+            const telCliente = telefono.value;
+            const servicioDeseado = servicio.options[servicio.selectedIndex].text;
 
             const r = await fetchRetry("/crear", {
                 method: "POST",
@@ -174,14 +179,24 @@
                 body: JSON.stringify({
                     fecha: fechaSeleccionada,
                     inicio: horaSel,
-                    cliente: cliente.value,
+                    cliente: nombreCliente,
+                    telefono: telCliente,
                     servicio: servicio.value
                 })
             })
 
             if (r) {
+                // Generar enlace de WhatsApp
+                const numeroLocal = "34603590998"; // Número del local proporcionado por el usuario
+                const textoWa = `¡Hola Girls Date! Acabo de reservar una cita para *${servicioDeseado}* el *${fechaSeleccionada}* a las *${horaSel}*. Mi nombre es *${nombreCliente}* y mi teléfono es *${telCliente}*.`;
+                const urlWa = `https://wa.me/${numeroLocal}?text=${encodeURIComponent(textoWa)}`;
+
+                alert("¡Cita reservada con éxito! A continuación confirma por WhatsApp.");
+                window.open(urlWa, "_blank");
+
                 horaSel = null
                 cliente.value = ""
+                telefono.value = ""
                 cargar()
             }
         }

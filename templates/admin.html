@@ -234,8 +234,9 @@
             }
             adminLista.innerHTML = citas.map(r => {
                 const idx = todasReservas.indexOf(r);
+                const telHtml = r.telefono ? `<br><small style="color:#666;">📞 ${r.telefono}</small>` : "";
                 return `<div class="mini">
-                    <strong>${r.inicio}</strong> — ${r.cliente} — ${r.servicio}
+                    <strong>${r.inicio}</strong> — ${r.cliente} — ${r.servicio} ${telHtml}
                     <button onclick="borrar(${idx})" style="margin-top:6px;">Eliminar</button>
                 </div>`;
             }).join("");
