@@ -89,8 +89,13 @@ def generar_horas(fecha):
     limite_t=datetime.strptime("18:30","%H:%M")
 
     horas=[]
-    horas+=generar_bloque(base_m,mañana,limite_m)
-    horas+=generar_bloque(base_t,tarde,limite_t)
+    
+    # Solo agregar bloques base normales de Lunes a Viernes (0 a 4)
+    # 5 y 6 son Sábado y Domingo, que solo funcionarán a base de "extras"
+    fecha_dt = datetime.strptime(fecha, "%Y-%m-%d")
+    if fecha_dt.weekday() < 5:
+        horas+=generar_bloque(base_m,mañana,limite_m)
+        horas+=generar_bloque(base_t,tarde,limite_t)
 
     for e in data["extras"]:
         if e["fecha"]==fecha:
