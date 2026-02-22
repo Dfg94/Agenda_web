@@ -12,7 +12,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/static/icon-192.svg">
-    <link rel="stylesheet" href="/static/style.css?v=5">
+    <link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 
 <body>
@@ -52,8 +52,10 @@
 
         <h2>Reservar turno</h2>
 
-        <input id="cliente" placeholder="Nombre cliente">
+        <input id="cliente" placeholder="Nombre y Apellido de cliente">
         <input type="tel" id="telefono" placeholder="Teléfono" style="margin-top:10px;">
+        <textarea id="nota" placeholder="¿Alguna nota o petición de la cita? (Opcional)"
+            style="margin-top:10px; width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-family:inherit; font-size:16px; box-sizing:border-box; resize:vertical; min-height:80px;"></textarea>
 
         <select id="servicio">
             {% for s,d in servicios.items() %}
@@ -106,11 +108,15 @@
 
             let html = ""
 
+            let fHoy = new Date()
+            let hoyStr = fHoy.getFullYear() + "-" + String(fHoy.getMonth() + 1).padStart(2, "0") + "-" + String(fHoy.getDate()).padStart(2, "0")
+
             for (let i = 1; i < primerDia; i++) html += "<div></div>"
 
             for (let d = 1; d <= diasMes; d++) {
                 let fecha = año + "-" + String(mes + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0")
-                html += `<div class="dia" onclick="seleccionar('${fecha}',this)">${d}</div>`
+                let claseHoy = fecha === hoyStr ? " hoy" : ""
+                html += `<div class="dia${claseHoy}" onclick="seleccionar('${fecha}',this)">${d}</div>`
             }
 
             dias.innerHTML = html
@@ -158,6 +164,7 @@
 
             const nombreCliente = cliente.value;
             const telCliente = telefono.value;
+            const notaCita = nota.value;
             const servicioDeseado = servicio.options[servicio.selectedIndex].text;
 
             const r = await fetchRetry("/crear", {
@@ -168,6 +175,7 @@
                     inicio: horaSel,
                     cliente: nombreCliente,
                     telefono: telCliente,
+                    nota: notaCita,
                     servicio: servicio.value
                 })
             })
@@ -191,6 +199,7 @@
                 horaSel = null
                 cliente.value = ""
                 telefono.value = ""
+                nota.value = ""
                 cargar()
             }
         }

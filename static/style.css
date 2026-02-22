@@ -13,7 +13,8 @@ html {
 }
 
 body {
-    background: #e9c7cf;
+    background: #fdf5e6;
+    /* Cream */
     display: flex;
     justify-content: center;
     padding: 20px;
@@ -33,7 +34,8 @@ body {
 
 h1 {
     text-align: center;
-    color: #e84b7a;
+    color: #8b5a2b;
+    /* Brown */
     margin-bottom: 20px;
     font-size: 1.6em;
 }
@@ -97,7 +99,14 @@ h2 {
 }
 
 .dia.activa {
-    background: #e84b7a;
+    background: #8b5a2b;
+    /* Brown */
+    color: white;
+}
+
+.dia.hoy {
+    background: #cd853f;
+    /* Lighter brown / Peru for today */
     color: white;
 }
 
@@ -106,7 +115,8 @@ h2 {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #e84b7a;
+    background: #8b5a2b;
+    /* Brown */
     margin: 2px auto 0;
 }
 
@@ -129,7 +139,8 @@ button {
     padding: 12px;
     border-radius: 14px;
     border: none;
-    background: #e84b7a;
+    background: #8b5a2b;
+    /* Brown */
     color: white;
     margin-top: 10px;
     cursor: pointer;

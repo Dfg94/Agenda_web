@@ -9,7 +9,7 @@
     <title>Panel Admin</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 
 <body>
@@ -204,12 +204,16 @@
             );
 
             let html = "";
+            let fHoy = new Date();
+            let hoyStr = fHoy.getFullYear() + "-" + String(fHoy.getMonth() + 1).padStart(2, "0") + "-" + String(fHoy.getDate()).padStart(2, "0");
+
             for (let i = 1; i < primerDia; i++) html += "<div></div>";
             for (let d = 1; d <= diasMes; d++) {
                 const f = año + "-" + String(mes + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
                 const tieneC = conCitas.has(f);
                 const esActiva = f === adminFechaSel ? " activa" : "";
-                html += `<div class="dia${esActiva}${tieneC ? " con-cita" : ""}" onclick="adminSeleccionar('${f}',this)">${d}${tieneC ? '<span class="punto"></span>' : ""}</div>`;
+                const esHoy = f === hoyStr ? " hoy" : "";
+                html += `<div class="dia${esActiva}${esHoy}${tieneC ? " con-cita" : ""}" onclick="adminSeleccionar('${f}',this)">${d}${tieneC ? '<span class="punto"></span>' : ""}</div>`;
             }
             adminDias.innerHTML = html;
         }
@@ -235,8 +239,9 @@
             adminLista.innerHTML = citas.map(r => {
                 const idx = todasReservas.indexOf(r);
                 const telHtml = r.telefono ? `<br><small style="color:#666;">📞 ${r.telefono}</small>` : "";
+                const notaHtml = r.nota ? `<br><small style="color:#8b5a2b; display:block; margin-top:4px;"><em>Nota:</em> ${r.nota}</small>` : "";
                 return `<div class="mini">
-                    <strong>${r.inicio}</strong> — ${r.cliente} — ${r.servicio} ${telHtml}
+                    <strong>${r.inicio}</strong> — ${r.cliente} — ${r.servicio} ${telHtml} ${notaHtml}
                     <button onclick="borrar(${idx})" style="margin-top:6px;">Eliminar</button>
                 </div>`;
             }).join("");
