@@ -8,7 +8,10 @@ app=Flask(__name__)
 def service_worker():
     return send_from_directory(app.static_folder,'sw.js',mimetype='application/javascript')
 
-archivo=os.path.join(os.path.dirname(os.path.abspath(__file__)), "datos.json")
+if os.path.exists("/data"):
+    archivo = "/data/datos.json"
+else:
+    archivo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "datos.json")
 
 servicios={
 "semi-permanente":60,
