@@ -22,11 +22,6 @@
         <h1>Girls Date</h1>
         <p class="subtitle">Beauty Studio</p>
 
-        <div id="estado"
-            style="display:none;text-align:center;padding:12px;background:#fff3cd;border-radius:12px;margin-bottom:15px;font-size:0.9em;">
-            ⏳ Conectando con el servidor...
-        </div>
-
         <div class="calendar">
             <div class="cal-header">
                 <button onclick="mes(-1)">‹</button>
@@ -75,24 +70,14 @@
         let fechaSeleccionada = null
         let horaSel = null
 
-        // Fetch con reintentos para cuando el servidor está dormido
-        async function fetchRetry(url, opciones, intentos = 3) {
-            estado.style.display = 'block'
-            for (let i = 0; i < intentos; i++) {
-                try {
-                    const r = await fetch(url, opciones)
-                    estado.style.display = 'none'
-                    return r
-                } catch (e) {
-                    if (i < intentos - 1) {
-                        estado.textContent = '⏳ El servidor se está despertando... (intento ' + (i + 2) + ')'
-                        await new Promise(ok => setTimeout(ok, 3000))
-                    }
-                }
+        // Fetch simplificado ahora que el servidor siempre está activo (Plan Starter)
+        async function fetchRetry(url, opciones) {
+            try {
+                return await fetch(url, opciones)
+            } catch (e) {
+                console.error("Error de conexión:", e)
+                return null
             }
-            estado.textContent = '❌ No se pudo conectar al servidor'
-            estado.style.background = '#f8d7da'
-            return null
         }
 
         function renderCalendar() {
