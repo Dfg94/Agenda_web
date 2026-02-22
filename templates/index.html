@@ -63,9 +63,6 @@
 
         <button onclick="reservar()">Reservar cita</button>
 
-        <h2>Citas del día</h2>
-        <div id="lista"></div>
-
     </div>
 
     <script>
@@ -143,16 +140,6 @@
             horarios.innerHTML = ""
             data.forEach(h => {
                 horarios.innerHTML += `<button class="hora" onclick="seleccionarHora('${h}',this)">${h}</button>`
-            })
-
-            lista.innerHTML = ""
-
-            const r2 = await fetchRetry("/reservas?fecha=" + fechaSeleccionada)
-            if (!r2) return
-
-            const reservas = await r2.json()
-            reservas.forEach(x => {
-                lista.innerHTML += `<div class="mini">${x.inicio} — ${x.cliente}</div>`
             })
         }
 
