@@ -12,7 +12,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/static/icon-192.svg">
-    <link rel="stylesheet" href="/static/style.css?v=8">
+    <link rel="stylesheet" href="/static/style.css?v=9">
 </head>
 
 <body>
@@ -109,14 +109,20 @@
             let html = ""
 
             let fHoy = new Date()
+            fHoy.setHours(0, 0, 0, 0) // Reset rules
             let hoyStr = fHoy.getFullYear() + "-" + String(fHoy.getMonth() + 1).padStart(2, "0") + "-" + String(fHoy.getDate()).padStart(2, "0")
 
             for (let i = 1; i < primerDia; i++) html += "<div></div>"
 
             for (let d = 1; d <= diasMes; d++) {
                 let fecha = año + "-" + String(mes + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0")
-                let claseHoy = fecha === hoyStr ? " hoy" : ""
-                html += `<div class="dia${claseHoy}" onclick="seleccionar('${fecha}',this)">${d}</div>`
+                let fechaObj = new Date(año, mes, d)
+
+                let esPasado = fechaObj < fHoy
+                let claseExtra = fecha === hoyStr ? " hoy" : (esPasado ? " pasado" : "")
+                let clickEvent = esPasado ? "" : `onclick="seleccionar('${fecha}',this)"`
+
+                html += `<div class="dia${claseExtra}" ${clickEvent}>${d}</div>`
             }
 
             dias.innerHTML = html
