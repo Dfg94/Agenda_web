@@ -12,7 +12,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-    <link rel="stylesheet" href="/static/style.css?v=10">
+    <link rel="stylesheet" href="/static/style.css?v=12">
 </head>
 
 <body>
@@ -20,6 +20,7 @@
     <div class="card">
 
         <h1>Girls Date</h1>
+        <p class="subtitle">Beauty Studio</p>
 
         <div id="estado"
             style="display:none;text-align:center;padding:12px;background:#fff3cd;border-radius:12px;margin-bottom:15px;font-size:0.9em;">
@@ -119,8 +120,12 @@
                 let fechaObj = new Date(año, mes, d)
 
                 let esPasado = fechaObj < fHoy
-                let claseExtra = fecha === hoyStr ? " hoy" : (esPasado ? " pasado" : "")
-                let clickEvent = esPasado ? "" : `onclick="seleccionar('${fecha}',this)"`
+                let diaSemana = fechaObj.getDay()
+                let esFinde = (diaSemana === 0 || diaSemana === 6)
+                let estaBloqueado = esPasado || esFinde
+
+                let claseExtra = fecha === hoyStr ? " hoy" : (estaBloqueado ? " pasado" : "")
+                let clickEvent = estaBloqueado ? "" : `onclick="seleccionar('${fecha}',this)"`
 
                 html += `<div class="dia${claseExtra}" ${clickEvent}>${d}</div>`
             }

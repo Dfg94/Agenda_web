@@ -44,6 +44,19 @@ h1 {
     letter-spacing: 1px;
 }
 
+.subtitle {
+    text-align: center;
+    color: #8b5a2b;
+    font-size: 1.1em;
+    font-weight: 300;
+    margin-top: -15px;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    opacity: 0.8;
+}
+
 h2 {
     margin-top: 20px;
     margin-bottom: 8px;
