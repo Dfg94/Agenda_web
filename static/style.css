@@ -13,8 +13,8 @@ html {
 }
 
 body {
-    background: #fdf5e6;
-    /* Cream */
+    background: #eedcba;
+    /* Crema especificado por el usuario */
     display: flex;
     justify-content: center;
     padding: 20px;
