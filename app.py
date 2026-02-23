@@ -1,8 +1,9 @@
-from flask import Flask,render_template,request,jsonify,send_from_directory
+from flask import Flask,render_template,request,jsonify,send_from_directory,session,redirect,url_for
 import json,os
 from datetime import datetime,timedelta
 
 app=Flask(__name__)
+app.secret_key="agenda_girlsdate_secreta_123"
 
 @app.route('/sw.js')
 def service_worker():
@@ -104,7 +105,18 @@ def generar_horas(fecha):
         if e["fecha"]==fecha:
             horas.append(e["hora"])
 
-    horas=[h for h in horas if not any(
+    hoy_str = datetime.now().strftime("%Y-%m-%d")
+    ahora = datetime.now()
+
+    horas_filtro_tiempo = []
+    for h in horas:
+        if fecha == hoy_str:
+            h_dt = datetime.strptime(h, "%H:%M")
+            if h_dt.time() <= ahora.time():
+                continue
+        horas_filtro_tiempo.append(h)
+
+    horas=[h for h in horas_filtro_tiempo if not any(
         b["fecha"]==fecha and b["hora"]==h
         for b in data["bloqueados"]
     )]
@@ -139,8 +151,28 @@ def crear():
     return "ok"
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        if request.form.get("usuario") == "carlarodriguez" and request.form.get("clave") == "violeta":
+            session["admin_logueado"] = True
+            return redirect(url_for("admin"))
+        else:
+            error = "Usuario o contraseña incorrectos"
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
+def logout():
+    session.pop("admin_logueado", None)
+    return redirect(url_for("login"))
+
+
 @app.route("/admin")
 def admin():
+    if not session.get("admin_logueado"):
+        return redirect(url_for("login"))
+        
     d=cargar()
     return render_template("admin.html",
         servicios=servicios,
