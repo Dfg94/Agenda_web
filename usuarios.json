@@ -1,0 +1,7 @@
+[
+    {
+        "nombre": "Test User",
+        "email": "test@example.com",
+        "password": "scrypt:32768:8:1$UjQsu0hsKSe0PoMf$70a27379d03588c4634ad3b3462887cf72b40849c3e8527f1077cf9696cf55f099ecfe8008fbebca96c8463209ff18909e332a4f2a045d75f13a4ef9281db8a4"
+    }
+]

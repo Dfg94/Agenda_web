@@ -19,6 +19,18 @@
 
     <div class="card">
 
+        <div class="user-nav" style="text-align: right; margin-bottom: 20px; font-size: 14px;">
+            {% if cliente_nombre %}
+            <span style="color: #666;">Hola, <b>{{ cliente_nombre }}</b></span>
+            <a href="{{ url_for('logout_cliente') }}"
+                style="margin-left: 10px; color: #ff4b4b; text-decoration: none; font-weight: bold;">Cerrar sesión</a>
+            {% else %}
+            <a href="{{ url_for('login_cliente') }}"
+                style="color: #e84b7a; text-decoration: none; font-weight: bold; border: 1px solid #e84b7a; padding: 5px 10px; border-radius: 20px;">Iniciar
+                Sesión</a>
+            {% endif %}
+        </div>
+
         <h1>Girls Date</h1>
         <p class="subtitle">Beauty Studio</p>
 
@@ -59,7 +71,12 @@
             {% endfor %}
         </select>
 
+        {% if cliente_nombre %}
         <button onclick="reservar()">Reservar cita</button>
+        {% else %}
+        <button onclick="window.location.href='{{ url_for('login_cliente') }}'" style="background: #a0a0a0;">Inicia
+            sesión para reservar</button>
+        {% endif %}
 
     </div>
 
@@ -180,7 +197,7 @@
                 })
             })
 
-            if (r) {
+            if (r && r.ok) {
                 // Generar enlace de WhatsApp
                 const numeroLocal = "34603590998"; // Número del local proporcionado por el usuario
                 const textoWa = `¡Hola Girls Date! Acabo de reservar una cita para *${servicioDeseado}* el *${fechaSeleccionada}* a las *${horaSel}*. Mi nombre es *${nombreCliente}*.`;
@@ -201,10 +218,15 @@
                 telefono.value = ""
                 nota.value = ""
                 cargar()
+            } else if (r && r.status === 401) {
+                alert("Tu sesión ha expirado o no estás logueado. Inicia sesión para continuar.")
+                window.location.href = "{{ url_for('login_cliente') }}"
+            } else {
+                alert("Hubo un error al procesar tu reserva. Inténtalo de nuevo.");
             }
         }
 
-        renderCalendar()
+        renderCalendar();
 
     </script>
 

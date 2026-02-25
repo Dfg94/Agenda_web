@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - Agenda Beauty</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Manifest para PWA -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#d6a8b7">
+</head>
+
+<body>
+    <div class="login-container">
+        <h1>Crear Cuenta</h1>
+        <p>Crea tu cuenta para agendar turnos más rápido.</p>
+
+        {% if error %}
+        <p style="color:red; font-weight:bold;">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <input type="text" name="nombre" placeholder="Nombre completo" required>
+            <input type="email" name="email" placeholder="Correo electrónico" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button type="submit">Registrarse</button>
+        </form>
+
+        <a href="{{ url_for('login_cliente') }}" style="display:block; margin-top:20px; color:#555;">¿Ya tienes una
+            cuenta? Inicia sesión aquí</a>
+        <a href="{{ url_for('home') }}" style="display:block; margin-top:10px; color:#555;">Volver al inicio</a>
+    </div>
+</body>
+
+</html>
