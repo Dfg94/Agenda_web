@@ -22,6 +22,10 @@
         <div class="user-nav" style="text-align: right; margin-bottom: 20px; font-size: 14px;">
             {% if cliente_nombre %}
             <span style="color: #666;">Hola, <b>{{ cliente_nombre }}</b></span>
+            <br><br>
+            <a href="{{ url_for('mis_turnos') }}"
+                style="color: #fff; background-color: #e84b7a; padding: 5px 12px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-right: 10px;">📅
+                Mis Turnos</a>
             <a href="{{ url_for('logout_cliente') }}"
                 style="margin-left: 10px; color: #ff4b4b; text-decoration: none; font-weight: bold;">Cerrar sesión</a>
             {% else %}

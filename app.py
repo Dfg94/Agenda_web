@@ -223,6 +223,36 @@ def logout_cliente():
     session.pop("cliente_nombre", None)
     return redirect(url_for("home"))
 
+@app.route("/mis_turnos")
+def mis_turnos():
+    cliente_email = session.get("cliente_email")
+    if not cliente_email:
+        return redirect(url_for("login_cliente"))
+
+    d = cargar()
+    mis_reservas = [r for r in d["reservas"] if r.get("email") == cliente_email]
+
+    ahora = datetime.now()
+    proximos = []
+    historial = []
+
+    for r in mis_reservas:
+        fecha_hora_str = f"{r['fecha']} {r['inicio']}"
+        fecha_hora_obj = datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M")
+
+        if fecha_hora_obj >= ahora:
+            proximos.append(r)
+        else:
+            historial.append(r)
+
+    # Ordenar próximos del más cercano al más lejano
+    proximos.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"))
+    
+    # Ordenar historial del más reciente al más antiguo
+    historial.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"), reverse=True)
+
+    return render_template("mis_turnos.html", proximos=proximos, historial=historial, cliente_nombre=session.get("cliente_nombre"))
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None

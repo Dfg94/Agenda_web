@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Turnos - Agenda Beauty</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Manifest para PWA -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#d6a8b7">
+    <style>
+        .turno-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            border-left: 5px solid #e84b7a;
+        }
+
+        .turno-card.pasado {
+            border-left-color: #ccc;
+            opacity: 0.8;
+            background: #f9f9f9;
+        }
+
+        .turno-titulo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .turno-detalle {
+            font-size: 14px;
+            color: #666;
+            margin: 2px 0;
+        }
+
+        .badge-proximo {
+            background-color: #e84b7a;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card" style="max-width: 600px; margin: 20px auto;">
+
+        <div style="text-align: left; margin-bottom: 20px;">
+            <a href="{{ url_for('home') }}" style="text-decoration: none; color: #555; font-weight: bold;">← Volver al
+                inicio</a>
+        </div>
+
+        <h1>Mis Turnos</h1>
+        <p class="subtitle" style="margin-bottom: 30px;">Hola, {{ cliente_nombre }}</p>
+
+        <h2>Próximas Citas</h2>
+        {% if proximos %}
+        {% for r in proximos %}
+        <div class="turno-card">
+            {% if loop.first %}<span class="badge-proximo">Siguiente turno</span>{% endif %}
+            <div class="turno-titulo">{{ r.servicio }}</div>
+            <p class="turno-detalle">📅 Fecha: <b>{{ r.fecha }}</b></p>
+            <p class="turno-detalle">⏰ Hora: <b>{{ r.inicio }}</b></p>
+            {% if r.nota %}
+            <p class="turno-detalle">📝 Nota: {{ r.nota }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="color: #666; font-style: italic; margin-bottom: 30px;">No tienes citas futuras programadas.</p>
+        {% endif %}
+
+        <h2 style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">Historial de Citas</h2>
+        {% if historial %}
+        {% for r in historial %}
+        <div class="turno-card pasado">
+            <div class="turno-titulo" style="color:#555">{{ r.servicio }}</div>
+            <p class="turno-detalle">📅 {{ r.fecha }} a las {{ r.inicio }}</p>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="color: #666; font-style: italic;">Aún no tienes un historial de citas.</p>
+        {% endif %}
+
+    </div>
+</body>
+
+</html>

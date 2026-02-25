@@ -17,6 +17,15 @@
             "inicio": "10:00",
             "cliente": "aaaaa",
             "servicio": "semi-permanente"
+        },
+        {
+            "fecha": "2026-02-27",
+            "inicio": "12:00",
+            "cliente": "Test User",
+            "telefono": "123456789",
+            "nota": "123456789",
+            "servicio": "semi-permanente",
+            "email": "test@example.com"
         }
     ],
     "extras": [],
