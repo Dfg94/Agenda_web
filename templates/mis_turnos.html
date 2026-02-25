@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Turnos - Agenda Beauty</title>
+    <title>Mis Citas - Agenda Beauty</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <!-- Manifest para PWA -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -60,14 +60,14 @@
                 inicio</a>
         </div>
 
-        <h1>Mis Turnos</h1>
+        <h1>Mis Citas</h1>
         <p class="subtitle" style="margin-bottom: 30px;">Hola, {{ cliente_nombre }}</p>
 
         <h2>Próximas Citas</h2>
         {% if proximos %}
         {% for r in proximos %}
         <div class="turno-card">
-            {% if loop.first %}<span class="badge-proximo">Siguiente turno</span>{% endif %}
+            {% if loop.first %}<span class="badge-proximo">Siguiente cita</span>{% endif %}
             <div class="turno-titulo">{{ r.servicio }}</div>
             <p class="turno-detalle">📅 Fecha: <b>{{ r.fecha }}</b></p>
             <p class="turno-detalle">⏰ Hora: <b>{{ r.inicio }}</b></p>
