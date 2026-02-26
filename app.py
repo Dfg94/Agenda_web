@@ -3,11 +3,21 @@ import json,os
 from datetime import datetime,timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Mail, Message
 
 app=Flask(__name__)
 app.secret_key="agenda_girlsdate_secreta_123"
 serializer = URLSafeTimedSerializer(app.secret_key)
 
+# Configuración de correo
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+
+mail = Mail(app)
 
 @app.route('/sw.js')
 def service_worker():
@@ -241,14 +251,30 @@ def recuperar_password():
             token = serializer.dumps(email, salt="recuperar-password")
             link = url_for("resetear_password", token=token, _external=True)
             
-            # Como no hay servidor SMTP configurado, imprimimos el enlace en la consola
-            # En producción, aquí se enviaría el email
-            print("\n" + "="*50)
-            print(f"🔗 ENLACE DE RECUPERACIÓN PARA {email}:")
-            print(link)
-            print("="*50 + "\n")
-            
-            mensaje = "Si el correo está registrado, recibirás un enlace para recuperar tu contraseña. (Revisa la consola del servidor para ver el enlace de prueba)"
+            try:
+                # Intentar enviar el correo
+                msg = Message('Recuperación de Contraseña - Agenda Beauty',
+                              sender=app.config['MAIL_USERNAME'],
+                              recipients=[email])
+                
+                msg.body = f'''Hola {usuario["nombre"]},
+
+Para restablecer tu contraseña, haz clic en el siguiente enlace:
+{link}
+
+Si no solicitaste este cambio, simplemente ignora este correo.
+El enlace expirará en 1 hora.
+
+Saludos,
+El equipo de Agenda Beauty.
+'''
+                mail.send(msg)
+                mensaje = "Si el correo está registrado y configuramos todo bien, recibirás un enlace."
+            except Exception as e:
+                # Si falla (ej. credenciales inválidas), mostrar error en consola pero no romper la app
+                print(f"Error al enviar correo: {e}")
+                error = "Hubo un problema al intentar enviar el correo. Por favor, contacta al administrador."
+                
         else:
             # Mensaje genérico por seguridad
             mensaje = "Si el correo está registrado, recibirás un enlace para recuperar tu contraseña."
