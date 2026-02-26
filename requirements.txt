@@ -3,3 +3,5 @@ gunicorn
 werkzeug
 itsdangerous
 Flask-Mail
+apscheduler
+

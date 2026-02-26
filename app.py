@@ -4,6 +4,7 @@ from datetime import datetime,timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app=Flask(__name__)
 app.secret_key="agenda_girlsdate_secreta_123"
@@ -18,6 +19,58 @@ app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 
 mail = Mail(app)
+
+def enviar_recordatorios():
+    with app.app_context():
+        try:
+            print("⏳ Ejecutando revisión de recordatorios diarios...")
+            data = cargar()
+            reservas = data.get("reservas", [])
+            usuarios = cargar_usuarios()
+            
+            manana = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+            reservas_manana = [r for r in reservas if r.get("fecha") == manana]
+            
+            enviados = 0
+            for r in reservas_manana:
+                email_cliente = r.get("email")
+                if not email_cliente:
+                    continue
+                
+                # Buscar nombre del usuario si está registrado
+                usuario = next((u for u in usuarios if u["email"] == email_cliente), None)
+                nombre_cliente = usuario["nombre"] if usuario else "Cliente"
+                
+                servicio = r.get("servicio", "tu servicio")
+                hora = r.get("inicio", "")
+                
+                msg = Message(f'Recordatorio: Tu cita en Agenda Beauty es mañana',
+                              sender=app.config['MAIL_USERNAME'],
+                              recipients=[email_cliente])
+                
+                msg.body = f'''Hola {nombre_cliente},
+
+Este es un recordatorio de que tienes una cita programada para mañana con nosotros.
+
+📅 Fecha: Mañana ({manana})
+⏰ Hora: {hora}
+💅 Servicio: {servicio}
+
+¡Te esperamos!
+El equipo de Agenda Beauty.
+'''
+                mail.send(msg)
+                enviados += 1
+                
+            print(f"✅ Revisión completa. Se enviaron {enviados} recordatorios para citas de mañana.")
+        except Exception as e:
+            print(f"❌ Error al enviar recordatorios automáticos: {e}")
+
+# Iniciar scheduler
+scheduler = BackgroundScheduler(daemon=True)
+# Programar para que corra todos los días a las 09:00 de la mañana
+scheduler.add_job(func=enviar_recordatorios, trigger="cron", hour=9, minute=0)
+scheduler.start()
 
 @app.route('/sw.js')
 def service_worker():
@@ -306,6 +359,13 @@ def resetear_password(token):
         error = "Usuario no encontrado."
 
     return render_template("resetear_password.html", error=error)
+
+@app.route("/trigger_recordatorios")
+def trigger_recordatorios():
+    # Esta ruta es un endpoint oculto para ti como admin para forzar
+    # la ejecución de los recordatorios en cualquier momento y probarlo.
+    enviar_recordatorios()
+    return "Revisión de recordatorios ejecutada. Revisa la consola para más detalles."
 
 @app.route("/mis_turnos")
 def mis_turnos():
