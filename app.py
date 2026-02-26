@@ -44,7 +44,7 @@ def enviar_recordatorios():
                 servicio = r.get("servicio", "tu servicio")
                 hora = r.get("inicio", "")
                 
-                msg = Message(f'Recordatorio: Tu cita en Agenda Beauty es mañana',
+                msg = Message(f'Recordatorio: Tu cita en Girls Date es mañana',
                               sender=app.config['MAIL_USERNAME'],
                               recipients=[email_cliente])
                 
@@ -57,7 +57,7 @@ Este es un recordatorio de que tienes una cita programada para mañana con nosot
 💅 Servicio: {servicio}
 
 ¡Te esperamos!
-El equipo de Agenda Beauty.
+El equipo de Girls Date.
 '''
                 mail.send(msg)
                 enviados += 1
@@ -306,7 +306,7 @@ def recuperar_password():
             
             try:
                 # Intentar enviar el correo
-                msg = Message('Recuperación de Contraseña - Agenda Beauty',
+                msg = Message('Recuperación de Contraseña - Girls Date',
                               sender=app.config['MAIL_USERNAME'],
                               recipients=[email])
                 
@@ -319,7 +319,7 @@ Si no solicitaste este cambio, simplemente ignora este correo.
 El enlace expirará en 1 hora.
 
 Saludos,
-El equipo de Agenda Beauty.
+El equipo de Girls Date.
 '''
                 mail.send(msg)
                 mensaje = "Si el correo está registrado y configuramos todo bien, recibirás un enlace."
