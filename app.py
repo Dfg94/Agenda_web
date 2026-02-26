@@ -2,8 +2,12 @@ from flask import Flask,render_template,request,jsonify,send_from_directory,sess
 import json,os
 from datetime import datetime,timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import URLSafeTimedSerializer
+
 app=Flask(__name__)
 app.secret_key="agenda_girlsdate_secreta_123"
+serializer = URLSafeTimedSerializer(app.secret_key)
+
 
 @app.route('/sw.js')
 def service_worker():
@@ -222,6 +226,60 @@ def logout_cliente():
     session.pop("cliente_email", None)
     session.pop("cliente_nombre", None)
     return redirect(url_for("home"))
+
+@app.route("/recuperar_password", methods=["GET", "POST"])
+def recuperar_password():
+    error = None
+    mensaje = None
+    if request.method == "POST":
+        email = request.form.get("email")
+        usuarios = cargar_usuarios()
+        usuario = next((u for u in usuarios if u["email"] == email), None)
+        
+        if usuario:
+            # Generar token seguro que expira
+            token = serializer.dumps(email, salt="recuperar-password")
+            link = url_for("resetear_password", token=token, _external=True)
+            
+            # Como no hay servidor SMTP configurado, imprimimos el enlace en la consola
+            # En producción, aquí se enviaría el email
+            print("\n" + "="*50)
+            print(f"🔗 ENLACE DE RECUPERACIÓN PARA {email}:")
+            print(link)
+            print("="*50 + "\n")
+            
+            mensaje = "Si el correo está registrado, recibirás un enlace para recuperar tu contraseña. (Revisa la consola del servidor para ver el enlace de prueba)"
+        else:
+            # Mensaje genérico por seguridad
+            mensaje = "Si el correo está registrado, recibirás un enlace para recuperar tu contraseña."
+            
+    return render_template("recuperar_password.html", error=error, mensaje=mensaje)
+
+@app.route("/resetear_password/<token>", methods=["GET", "POST"])
+def resetear_password(token):
+    error = None
+    try:
+        # El token expira en 1 hora (3600 segundos)
+        email = serializer.loads(token, salt="recuperar-password", max_age=3600)
+    except:
+        return render_template("resetear_password.html", error="El enlace de recuperación es inválido o ha expirado.")
+
+    if request.method == "POST":
+        password = request.form.get("password")
+        usuarios = cargar_usuarios()
+        
+        for u in usuarios:
+            if u["email"] == email:
+                u["password"] = generate_password_hash(password)
+                guardar_usuarios(usuarios)
+                # Iniciar sesión automáticamente
+                session["cliente_email"] = u["email"]
+                session["cliente_nombre"] = u["nombre"]
+                return redirect(url_for("home"))
+                
+        error = "Usuario no encontrado."
+
+    return render_template("resetear_password.html", error=error)
 
 @app.route("/mis_turnos")
 def mis_turnos():

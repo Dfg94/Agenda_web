@@ -158,6 +158,34 @@ select {
     font-size: 16px;
 }
 
+.password-container {
+    position: relative;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.password-container input {
+    margin-top: 0;
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-top: 0;
+    padding: 0;
+    width: auto;
+    font-size: 1.2em;
+    color: #555;
+    outline: none;
+}
+
+
 button {
     width: 100%;
     padding: 12px;

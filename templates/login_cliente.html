@@ -22,14 +22,32 @@
 
         <form method="POST">
             <input type="email" name="email" placeholder="Correo electrónico" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
+            <div class="password-container">
+                <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                <button type="button" class="toggle-password" onclick="togglePassword('password', this)">👁️</button>
+            </div>
             <button type="submit">Entrar</button>
         </form>
 
-        <a href="{{ url_for('registro') }}" style="display:block; margin-top:20px; color:#555;">¿No tienes cuenta?
+        <a href="{{ url_for('recuperar_password') }}"
+            style="display:block; margin-top:15px; color:#555; font-size: 0.9em;">¿Olvidaste tu contraseña?</a>
+        <a href="{{ url_for('registro') }}" style="display:block; margin-top:15px; color:#555;">¿No tienes cuenta?
             Regístrate aquí</a>
         <a href="{{ url_for('home') }}" style="display:block; margin-top:10px; color:#555;">Volver al inicio</a>
     </div>
+
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '👁️‍🗨️';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 
 </html>
