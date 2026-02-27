@@ -26,6 +26,33 @@
             "nota": "123456789",
             "servicio": "semi-permanente",
             "email": "test@example.com"
+        },
+        {
+            "fecha": "2026-03-02",
+            "inicio": "15:30",
+            "nota": "",
+            "servicio": "semi-permanentes refuerzo",
+            "email": "testclient@example.com",
+            "cliente": "Test Client",
+            "telefono": "123456789"
+        },
+        {
+            "fecha": "2026-03-02",
+            "inicio": "10:00",
+            "nota": "",
+            "servicio": "semi-permanente",
+            "email": "testclient@example.com",
+            "cliente": "Test Client",
+            "telefono": "123456789"
+        },
+        {
+            "fecha": "2026-03-02",
+            "inicio": "11:00",
+            "nota": "",
+            "servicio": "semi-permanente",
+            "email": "testclient@example.com",
+            "cliente": "Test Client",
+            "telefono": "123456789"
         }
     ],
     "extras": [],

@@ -497,12 +497,18 @@ def mis_turnos():
     hoy = datetime.now()
     futuras = []
     pasadas = []
-    for r in mis_reservas:
-        fecha_hora = datetime.strptime(f"{r['fecha']} {r['inicio']}", "%Y-%m-%d %H:%M")
-        if fecha_hora >= hoy:
-            futuras.append(r)
-        else:
-            pasadas.append(r)
+    for idx, r in enumerate(data.get("reservas", [])):
+        if r.get("email") == cliente_email:
+            r_copy = r.copy()
+            r_copy["index"] = idx # inject global index
+            fecha_hora = datetime.strptime(f"{r_copy['fecha']} {r_copy['inicio']}", "%Y-%m-%d %H:%M")
+            if fecha_hora >= hoy:
+                # Calcular si faltan más de 20 horas
+                horas_diferencia = (fecha_hora - hoy).total_seconds() / 3600
+                r_copy["puede_modificar"] = horas_diferencia >= 20
+                futuras.append(r_copy)
+            else:
+                pasadas.append(r_copy)
             
     futuras.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"))
     pasadas.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"), reverse=True)
@@ -519,7 +525,7 @@ def mis_turnos():
             "foto": ""
         }
 
-    return render_template("mis_turnos.html", futuras=futuras, pasadas=pasadas, usuario=usuario_db)
+    return render_template("mis_turnos.html", futuras=futuras, pasadas=pasadas, usuario=usuario_db, servicios=servicios)
 
 @app.route("/actualizar_perfil", methods=["POST"])
 def actualizar_perfil():
@@ -621,6 +627,19 @@ def modificar():
     idx = int(req["index"])
     
     reserva = d["reservas"][idx]
+    
+    # Check 20-hour lock for non-admins
+    if not session.get("admin_logueado"):
+        # Validate ownership just in case
+        cliente_email = session.get("cliente_email")
+        if not cliente_email or reserva.get("email") != cliente_email:
+            return "No tienes permiso para modificar esta cita", 403
+            
+        fecha_cita = datetime.strptime(f"{reserva['fecha']} {reserva['inicio']}", "%Y-%m-%d %H:%M")
+        horas_diff = (fecha_cita - datetime.now()).total_seconds() / 3600
+        if horas_diff < 20:
+            return "No se puede modificar una cita con menos de 20 horas de anticipación.", 403
+
     reserva["fecha"] = req["fecha"]
     reserva["inicio"] = req["hora"]
     reserva["servicio"] = req["servicio"]

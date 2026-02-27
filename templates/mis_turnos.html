@@ -74,6 +74,15 @@
             {% if r.nota %}
             <p class="turno-detalle">📝 Nota: {{ r.nota }}</p>
             {% endif %}
+            {% if r.puede_modificar %}
+            <button onclick="abrirModalModificarCliente({{r.index}}, '{{r.fecha}}', '{{r.inicio}}', '{{r.servicio}}')"
+                style="margin-top: 10px; padding: 8px 15px; font-size: 0.9em; background-color: #f7f7f7; color: #8b5a2b; border: 1px solid #8b5a2b; border-radius: 8px; cursor: pointer;">
+                Modificar Cita
+            </button>
+            {% else %}
+            <p style="font-size: 0.8em; color: #999; margin-top: 10px;"><i>Ya no es posible modificar esta cita (menos
+                    de 20hs).</i></p>
+            {% endif %}
         </div>
         {% endfor %}
         {% else %}
@@ -94,7 +103,138 @@
 
     </div>
 
+    <!-- Modal Modificar Cita Cliente -->
+    <div id="modal-modificar"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div
+            style="background:#fff; margin:15% auto; padding:20px; width:90%; max-width:400px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+            <span onclick="cerrarModalModificar()"
+                style="float:right; font-size:24px; cursor:pointer; color:#888;">&times;</span>
+            <h3 style="color:#8b5a2b; margin-top:0;">Modificar Cita</h3>
 
+            <input type="hidden" id="mod-index">
+
+            <label style="display:block; margin-top:10px;">Fecha:</label>
+            <input type="date" id="mod-fecha" onchange="cargarHorasCliente()"
+                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-top:5px;">
+
+            <label style="display:block; margin-top:10px;">Hora:</label>
+            <select id="mod-hora"
+                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-top:5px;">
+                <option value="">Selecciona una fecha primero</option>
+            </select>
+
+            <label style="display:block; margin-top:10px;">Servicio:</label>
+            <select id="mod-servicio"
+                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-top:5px;">
+                {% for s,d in servicios.items() %}
+                <option value="{{s}}">{{s}} ({{d}} min)</option>
+                {% endfor %}
+            </select>
+
+            <button onclick="guardarModificacionCliente()"
+                style="width:100%; padding:12px; background:#8b5a2b; color:white; border:none; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;">
+                Guardar Cambios
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function abrirModalModificarCliente(index, fecha, hora, servicio) {
+            document.getElementById('mod-index').value = index;
+            document.getElementById('mod-fecha').value = fecha;
+
+            // Asignar servicio si existe la opción
+            const selectServicio = document.getElementById('mod-servicio');
+            if (selectServicio.querySelector(`option[value="${servicio}"]`)) {
+                selectServicio.value = servicio;
+            }
+
+            document.getElementById('modal-modificar').style.display = 'block';
+
+            // Cargar horas para la fecha actual y preseleccionar la hora actual
+            cargarHorasCliente(hora);
+        }
+
+        function cerrarModalModificar() {
+            document.getElementById('modal-modificar').style.display = 'none';
+        }
+
+        async function cargarHorasCliente(horaActualPreseleccionada = null) {
+            const fecha = document.getElementById('mod-fecha').value;
+            const selectHora = document.getElementById('mod-hora');
+
+            if (!fecha) {
+                selectHora.innerHTML = '<option value="">Selecciona una fecha primero</option>';
+                return;
+            }
+
+            selectHora.innerHTML = '<option value="">Cargando horas...</option>';
+
+            try {
+                const res = await fetch(`/horarios?fecha=${fecha}`);
+                const horasDisp = await res.json();
+
+                selectHora.innerHTML = '';
+
+                // Si la fecha seleccionada es la misma que la cita original, la hora original debería ser válida para re-seleccionarse incluso si ya está tomada por esta misma cita en el db. 
+                // Sin embargo `horarios` la va a mostrar como ocupada. Por simplicidad, inyectamos la hora actual de la cita si la fecha coincide para que el usuario pueda volver a seleccionarla.
+                let opciones = "";
+
+                if (horaActualPreseleccionada && !horasDisp.includes(horaActualPreseleccionada)) {
+                    opciones += `<option value="${horaActualPreseleccionada}">${horaActualPreseleccionada} (Actual)</option>`;
+                }
+
+                if (horasDisp.length === 0 && opciones === "") {
+                    selectHora.innerHTML = '<option value="">No hay horarios disponibles</option>';
+                    return;
+                }
+
+                horasDisp.forEach(h => {
+                    opciones += `<option value="${h}">${h}</option>`;
+                });
+
+                selectHora.innerHTML = opciones;
+
+                if (horaActualPreseleccionada) {
+                    selectHora.value = horaActualPreseleccionada;
+                }
+            } catch (error) {
+                alert("Error al cargar horarios");
+                selectHora.innerHTML = '<option value="">Error de conexión</option>';
+            }
+        }
+
+        async function guardarModificacionCliente() {
+            const index = document.getElementById('mod-index').value;
+            const fecha = document.getElementById('mod-fecha').value;
+            const hora = document.getElementById('mod-hora').value;
+            const servicio = document.getElementById('mod-servicio').value;
+
+            if (!fecha || !hora) {
+                alert("Por favor selecciona una fecha y hora disponibles.");
+                return;
+            }
+
+            try {
+                const res = await fetch("/modificar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ index, fecha, hora, servicio })
+                });
+
+                if (res.ok) {
+                    alert("Cita modificada con éxito.");
+                    location.reload();
+                } else {
+                    const errorMsg = await res.text();
+                    alert("No se pudo modificar la cita: " + errorMsg);
+                }
+            } catch (error) {
+                alert("Error de conexión al modificar la cita.");
+            }
+        }
+    </script>
 </body>
 
 </html>

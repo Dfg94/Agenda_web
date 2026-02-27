@@ -3,5 +3,11 @@
         "nombre": "Test User",
         "email": "test@example.com",
         "password": "scrypt:32768:8:1$UjQsu0hsKSe0PoMf$70a27379d03588c4634ad3b3462887cf72b40849c3e8527f1077cf9696cf55f099ecfe8008fbebca96c8463209ff18909e332a4f2a045d75f13a4ef9281db8a4"
+    },
+    {
+        "nombre": "Test Client",
+        "telefono": "123456789",
+        "email": "testclient@example.com",
+        "password": "scrypt:32768:8:1$PowQqGhw9bceINxH$479caf173e1255435fc46bdb8fc5482a9d9bd4db695cb43104315a90569a2ef9d63bcc7c2f6013334f2be6e3a0b09f4ca0d97f4acd5d713a141d54abf69e71a7"
     }
 ]
