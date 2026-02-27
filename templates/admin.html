@@ -10,6 +10,57 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.png" type="image/png">
     <link rel="stylesheet" href="/static/style.css?v=9">
+    <style>
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #888;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.activa {
+            color: #e84b7a;
+            border-bottom-color: #e84b7a;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.activa {
+            display: block;
+        }
+
+        .cliente-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            background: #fafafa;
+            transition: 0.2s;
+        }
+
+        .cliente-item:hover {
+            background: #fff0f5;
+        }
+
+        .cliente-detalles {
+            display: none;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #e84b7a;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,99 +74,132 @@
                 sesión</a>
         </div>
 
-        <div class="grid">
-
-            <div class="box">
-                <h3>Nueva cita</h3>
-                <input type="date" id="fecha">
-                <input id="cliente" placeholder="Cliente">
-                <input id="hora" placeholder="Hora">
-
-                <select id="servicio">
-                    {% for s,d in servicios.items() %}
-                    <option value="{{s}}">{{s}} ({{d}} min)</option>
-                    {% endfor %}
-                </select>
-
-                <button onclick="crear()">Crear cita</button>
-            </div>
-
-
-            <div class="box">
-                <h3>Horarios manuales</h3>
-                <input type="date" id="fechaExtra">
-                <input id="horaExtra" placeholder="Hora">
-                <button onclick="addExtra()">Agregar</button>
-
-                {% for e in extras %}
-                <div class="mini">
-                    {{e.fecha | formato_fecha}} — {{e.hora}}
-                    <button onclick="delExtra({{loop.index0}})">X</button>
-                </div>
-                {% endfor %}
-            </div>
-
-
-            <div class="box">
-                <h3>Bloquear horario</h3>
-                <input type="date" id="fechaBloq">
-                <input id="horaBloq" placeholder="Hora">
-                <button onclick="bloquear()">Bloquear</button>
-
-                {% for b in bloqueados %}
-                <div class="mini">
-                    {{b.fecha | formato_fecha}} — {{b.hora}}
-                    <button onclick="desbloquear({{loop.index0}})">Quitar</button>
-                </div>
-                {% endfor %}
-            </div>
-
-
-            <div class="box">
-                <h3>Bloquear día</h3>
-                <input type="date" id="diaBloq">
-                <button onclick="bloquearDia()">Bloquear</button>
-
-                {% for d in dias_bloqueados %}
-                <div class="mini">
-                    {{d | formato_fecha}}
-                    <button onclick="desbloquearDia({{loop.index0}})">Quitar</button>
-                </div>
-                {% endfor %}
-            </div>
-
-
-            <div class="box full">
-                <h3>Citas guardadas</h3>
-
-                <!-- Calendario admin -->
-                <div class="calendar" style="margin-top:14px;">
-                    <div class="cal-header">
-                        <button onclick="adminMes(-1)" type="button">‹</button>
-                        <span id="adminMesTitulo"></span>
-                        <button onclick="adminMes(1)" type="button">›</button>
-                    </div>
-                    <div class="semana">
-                        <div>Lun</div>
-                        <div>Mar</div>
-                        <div>Mié</div>
-                        <div>Jue</div>
-                        <div>Vie</div>
-                        <div>Sáb</div>
-                        <div>Dom</div>
-                    </div>
-                    <div class="dias" id="adminDias"></div>
-                </div>
-
-                <!-- Lista filtrada por día -->
-                <div id="adminLista" style="margin-top:10px;">
-                    <p style="text-align:center;opacity:0.45;font-size:0.9em;padding:10px 0;">
-                        Selecciona un día para ver las citas
-                    </p>
-                </div>
-            </div>
-
+        <div class="tabs">
+            <div class="tab activa" onclick="switchTab('citas', this)">📅 Citas y Calendario</div>
+            <div class="tab" onclick="switchTab('clientes', this)">👥 Clientes Registrados</div>
         </div>
+
+        <!-- Pestaña de Citas (Todo el panel actual) -->
+        <div id="tab-citas" class="tab-content activa">
+            <div class="grid">
+
+                <div class="box">
+                    <h3>Nueva cita</h3>
+                    <input type="date" id="fecha">
+                    <input id="cliente" placeholder="Cliente">
+                    <input id="hora" placeholder="Hora">
+
+                    <select id="servicio">
+                        {% for s,d in servicios.items() %}
+                        <option value="{{s}}">{{s}} ({{d}} min)</option>
+                        {% endfor %}
+                    </select>
+
+                    <button onclick="crear()">Crear cita</button>
+                </div>
+
+
+                <div class="box">
+                    <h3>Horarios manuales</h3>
+                    <input type="date" id="fechaExtra">
+                    <input id="horaExtra" placeholder="Hora">
+                    <button onclick="addExtra()">Agregar</button>
+
+                    {% for e in extras %}
+                    <div class="mini">
+                        {{e.fecha | formato_fecha}} — {{e.hora}}
+                        <button onclick="delExtra({{loop.index0}})">X</button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+
+                <div class="box">
+                    <h3>Bloquear horario</h3>
+                    <input type="date" id="fechaBloq">
+                    <input id="horaBloq" placeholder="Hora">
+                    <button onclick="bloquear()">Bloquear</button>
+
+                    {% for b in bloqueados %}
+                    <div class="mini">
+                        {{b.fecha | formato_fecha}} — {{b.hora}}
+                        <button onclick="desbloquear({{loop.index0}})">Quitar</button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+
+                <div class="box">
+                    <h3>Bloquear día</h3>
+                    <input type="date" id="diaBloq">
+                    <button onclick="bloquearDia()">Bloquear</button>
+
+                    {% for d in dias_bloqueados %}
+                    <div class="mini">
+                        {{d | formato_fecha}}
+                        <button onclick="desbloquearDia({{loop.index0}})">Quitar</button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+
+                <div class="box full">
+                    <h3>Citas guardadas</h3>
+
+                    <!-- Calendario admin -->
+                    <div class="calendar" style="margin-top:14px;">
+                        <div class="cal-header">
+                            <button onclick="adminMes(-1)" type="button">‹</button>
+                            <span id="adminMesTitulo"></span>
+                            <button onclick="adminMes(1)" type="button">›</button>
+                        </div>
+                        <div class="semana">
+                            <div>Lun</div>
+                            <div>Mar</div>
+                            <div>Mié</div>
+                            <div>Jue</div>
+                            <div>Vie</div>
+                            <div>Sáb</div>
+                            <div>Dom</div>
+                        </div>
+                        <div class="dias" id="adminDias"></div>
+                    </div>
+
+                    <!-- Lista filtrada por día -->
+                    <div id="adminLista" style="margin-top:10px;">
+                        <p style="text-align:center;opacity:0.45;font-size:0.9em;padding:10px 0;">
+                            Selecciona un día para ver las citas
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pestaña de Clientes -->
+        <div id="tab-clientes" class="tab-content">
+            <h3 style="margin-bottom: 15px;">Listado de Clientes</h3>
+
+            {% if usuarios %}
+            {% for u in usuarios %}
+            <div class="cliente-item" onclick="toggleClienteDetalles('{{ u.email }}')">
+                <strong>{{ u.nombre }}</strong>
+                <div id="detalles-{{ u.email }}" class="cliente-detalles">
+                    <p>📧 Email: {{ u.email }}</p>
+                    <p>📞 Teléfono: {{ u.telefono if u.telefono else 'No registrado' }}</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                    <h4>Próximas Citas</h4>
+                    <div id="futuras-{{ u.email }}"></div>
+                    <h4 style="margin-top:10px;">Historial</h4>
+                    <div id="pasadas-{{ u.email }}"></div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>No hay clientes registrados aún.</p>
+            {% endif %}
+        </div>
+
     </div>
 
 
@@ -257,6 +341,66 @@
         }
 
         adminRenderCalendar();
+
+        // ─── Lógica de Pestañas y Clientes ─────────────────────────────────
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('activa'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('activa'));
+
+            el.classList.add('activa');
+            document.getElementById('tab-' + tabId).classList.add('activa');
+        }
+
+        function toggleClienteDetalles(email) {
+            const detalles = document.getElementById('detalles-' + email);
+
+            // Si ya está abierto, lo cerramos
+            if (detalles.style.display === 'block') {
+                detalles.style.display = 'none';
+                return;
+            }
+
+            // Cerrar todos los demás primero
+            document.querySelectorAll('.cliente-detalles').forEach(d => d.style.display = 'none');
+
+            // Filtrar citas de este usuario
+            const citasUsuario = todasReservas.filter(r => r.email === email);
+
+            const hoy = new Date();
+            const futuras = [];
+            const pasadas = [];
+
+            citasUsuario.forEach(r => {
+                const fechaHora = new Date(r.fecha + "T" + r.inicio);
+                if (fechaHora >= hoy) {
+                    futuras.push(r);
+                } else {
+                    pasadas.push(r);
+                }
+            });
+
+            // Funcíon helper para renderizar citas en los bloques
+            const renderCitaInfo = (citaArr) => {
+                if (citaArr.length === 0) return "<p style='color:#888; font-size:13px;'>Ninguna</p>";
+                return citaArr.map(r => {
+                    const partes = r.fecha.split('-');
+                    const fechaF = partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : r.fecha;
+                    return `<div style="background:#f5f5f5; padding:8px; border-radius:6px; margin-bottom:5px; font-size:14px;">
+                        <strong>${fechaF} ${r.inicio}</strong> - ${r.servicio}
+                    </div>`;
+                }).join('');
+            };
+
+            // Ordenar futuras (más cercanas primero)
+            futuras.sort((a, b) => new Date(a.fecha + "T" + a.inicio) - new Date(b.fecha + "T" + b.inicio));
+            // Ordenar pasadas (más recientes primero)
+            pasadas.sort((a, b) => new Date(b.fecha + "T" + b.inicio) - new Date(a.fecha + "T" + a.inicio));
+
+            document.getElementById('futuras-' + email).innerHTML = renderCitaInfo(futuras);
+            document.getElementById('pasadas-' + email).innerHTML = renderCitaInfo(pasadas);
+
+            detalles.style.display = 'block';
+        }
 
     </script>
 

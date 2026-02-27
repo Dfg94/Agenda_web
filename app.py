@@ -505,12 +505,14 @@ def admin():
         return redirect(url_for("login"))
         
     d=cargar()
+    usuarios = cargar_usuarios()
     return render_template("admin.html",
         servicios=servicios,
         reservas=d["reservas"],
         extras=d["extras"],
         bloqueados=d["bloqueados"],
-        dias_bloqueados=d["dias_bloqueados"]
+        dias_bloqueados=d["dias_bloqueados"],
+        usuarios=usuarios
     )
 
 
