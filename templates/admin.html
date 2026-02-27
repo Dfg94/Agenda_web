@@ -229,7 +229,7 @@
             <div id="lista-clientes-container">
                 {% if usuarios %}
                 {% for u in usuarios %}
-                <div class="cliente-item" onclick="toggleClienteDetalles('{{ u.email }}')">
+                <div class="cliente-item" onclick="toggleClienteDetalles('{{ u.email }}', event)">
                     <strong>{{ u.nombre }}</strong>
                     <div id="detalles-{{ u.email }}" class="cliente-detalles" onclick="event.stopPropagation()">
                         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
@@ -445,7 +445,15 @@
             document.getElementById('tab-' + tabId).classList.add('activa');
         }
 
-        function toggleClienteDetalles(email) {
+        function toggleClienteDetalles(email, event) {
+            // Ignore if the click came from an interactive element or the details box itself
+            if (event) {
+                const target = event.target;
+                if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'BUTTON' || target.closest('.cliente-detalles')) {
+                    return;
+                }
+            }
+
             const detalles = document.getElementById('detalles-' + email);
 
             // Si ya está abierto, lo cerramos
@@ -541,7 +549,7 @@
                     fecha: fechaInput,
                     cliente: nombreCliente,
                     email: emailDestino,
-                    hora: horaInput,
+                    inicio: horaInput,
                     servicio: servicioInput,
                     nota: "Reserva administrativa"
                 })
