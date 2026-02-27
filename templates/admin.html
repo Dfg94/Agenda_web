@@ -231,7 +231,7 @@
                 {% for u in usuarios %}
                 <div class="cliente-item" onclick="toggleClienteDetalles('{{ u.email }}')">
                     <strong>{{ u.nombre }}</strong>
-                    <div id="detalles-{{ u.email }}" class="cliente-detalles">
+                    <div id="detalles-{{ u.email }}" class="cliente-detalles" onclick="event.stopPropagation()">
                         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
                             <img src="{{ u.foto if u.foto else 'https://ui-avatars.com/api/?name=' + u.nombre + '&background=8b5a2b&color=fff' }}"
                                 alt="Foto de perfil de {{ u.nombre }}"
