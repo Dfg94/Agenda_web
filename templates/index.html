@@ -202,20 +202,7 @@
             })
 
             if (r && r.ok) {
-                // Generar enlace de WhatsApp
-                const numeroLocal = "34603590998"; // Número del local proporcionado por el usuario
-                const textoWa = `¡Hola Girls Date! Acabo de reservar una cita para *${servicioDeseado}* el *${fechaSeleccionada}* a las *${horaSel}*. Mi nombre es *${nombreCliente}*.`;
-
-                // Detectar si es móvil para forzar la app nativa en lugar de la web
-                const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                const urlWa = esMovil
-                    ? `whatsapp://send?phone=${numeroLocal}&text=${encodeURIComponent(textoWa)}`
-                    : `https://wa.me/${numeroLocal}?text=${encodeURIComponent(textoWa)}`;
-
-                alert("¡Cita reservada con éxito! A continuación confirma por WhatsApp.");
-
-                // Redirigir directamente para que el móvil abra la app
-                window.location.href = urlWa;
+                alert("¡Cita reservada con éxito!");
 
                 horaSel = null
                 cliente.value = ""

@@ -232,6 +232,39 @@ def crear():
     nueva_reserva["email"] = cliente_email # Forzar que la reserva tenga el email del usuario
     data["reservas"].append(nueva_reserva)
     guardar(data)
+    
+    # Enviar correo a la dueña
+    try:
+        # Extraer variables para el correo
+        cliente = nueva_reserva.get("cliente", "Cliente")
+        telefono = nueva_reserva.get("telefono", "Sin teléfono")
+        fecha = nueva_reserva.get("fecha", "Sin fecha")
+        inicio = nueva_reserva.get("inicio", "Sin hora")
+        servicio = nueva_reserva.get("servicio", "Servicio no especificado")
+        nota = nueva_reserva.get("nota", "Sin nota")
+        
+        # Enviar correo a la misma cuenta configurada
+        msg = Message(f'NUEVA CITA: {cliente} - {fecha} {inicio}',
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=[app.config['MAIL_USERNAME']]) # Lo recibe la dueña (ella misma)
+        
+        msg.body = f'''¡Felicidades! Se ha registrado una nueva cita en Girls Date.
+
+Detalles de la Cita:
+---------------------------
+- Cliente: {cliente}
+- Email Cliente: {cliente_email}
+- Teléfono: {telefono}
+- Fecha: {fecha}
+- Hora: {inicio}
+- Servicio: {servicio}
+- Nota: {nota}
+---------------------------
+'''
+        mail.send(msg)
+    except Exception as e:
+        print(f"Error al enviar aviso a la dueña: {e}")
+
     return "ok"
 
 @app.route("/registro", methods=["GET", "POST"])
