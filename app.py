@@ -262,6 +262,26 @@ Detalles de la Cita:
 ---------------------------
 '''
         mail.send(msg)
+        
+        # Enviar correo de confirmación a la clienta
+        msg_cliente = Message(f'Confirmación de Reserva en Girls Date',
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=[cliente_email])
+        
+        msg_cliente.body = f'''¡Hola {cliente}!
+
+Tu cita en Girls Date ha sido reservada con éxito. Aquí tienes los detalles:
+
+📅 Fecha: {fecha}
+⏰ Hora: {inicio}
+💅 Servicio: {servicio}
+
+¡Te esperamos!
+El equipo de Girls Date.
+'''
+        mail.send(msg_cliente)
+        
+
     except Exception as e:
         print(f"Error al enviar aviso a la dueña: {e}")
 
