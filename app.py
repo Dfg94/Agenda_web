@@ -256,88 +256,93 @@ def reservas():
     return jsonify([r for r in data["reservas"] if r["fecha"]==f])
 
 
+def enviar_notificacion_cita(email_destino, nombre_cliente, accion, reserva):
+    if not email_destino:
+        return
+        
+    try:
+        fecha = reserva.get("fecha", "Sin fecha")
+        inicio = reserva.get("inicio", "Sin hora")
+        servicio = reserva.get("servicio", "Servicio no especificado")
+        
+        try:
+            fecha_str = datetime.strptime(fecha, "%Y-%m-%d").strftime("%d/%m/%Y") if fecha != "Sin fecha" else fecha
+        except:
+            fecha_str = fecha
+            
+        texto_accion = {
+            "creada": "ha sido reservada con éxito",
+            "modificada": "ha sido modificada",
+            "eliminada": "ha sido cancelada"
+        }.get(accion, "ha sido actualizada")
+        
+        # Enviar correo a la clienta
+        msg_cliente = Message(f'Aviso de tu cita en Girls Date',
+                      sender=app.config['MAIL_USERNAME'],
+                      recipients=[email_destino])
+        
+        msg_cliente.body = f'''¡Hola {nombre_cliente}!
+
+Tu cita en Girls Date {texto_accion}. Aquí tienes los detalles actualizados:
+
+📅 Fecha: {fecha_str}
+⏰ Hora: {inicio}
+💅 Servicio: {servicio}
+
+Cualquier duda, contáctanos.
+El equipo de Girls Date.
+'''
+        mail.send(msg_cliente)
+    except Exception as e:
+        print(f"Error al enviar correo de notificación al cliente: {e}")
+
 @app.route("/crear",methods=["POST"])
 def crear():
-    # Solo permitir reservas si hay sesión iniciada de un cliente
+    # Solo permitir reservas si hay sesión iniciada de un cliente o si viene del admin
     cliente_email = session.get("cliente_email")
-    if not cliente_email:
+    is_admin = session.get("admin_logueado")
+    
+    if not cliente_email and not is_admin:
         return "No autorizado - Inicia sesión primero", 401
 
     data=cargar()
     nueva_reserva = request.json
     
-    # Inyectar datos del perfil del usuario (ignorar cliente y telefono del frontend)
-    nueva_reserva["email"] = cliente_email
-    
-    # Buscar en la DB de usuarios para asegurar tener los datos mas recientes
-    usuarios = cargar_usuarios()
-    usuario_db = next((u for u in usuarios if u["email"] == cliente_email), None)
-    if usuario_db:
-        nueva_reserva["cliente"] = usuario_db.get("nombre", session.get("cliente_nombre", "Cliente"))
-        nueva_reserva["telefono"] = usuario_db.get("telefono", session.get("cliente_telefono", "Sin teléfono"))
+    # Inyectar datos del perfil del usuario
+    if is_admin and "email" in nueva_reserva:
+        # Reserva creada por admin para un cliente
+        email_reserva = nueva_reserva["email"]
     else:
+        # Reserva creada por el cliente mismo
+        email_reserva = cliente_email
+        nueva_reserva["email"] = cliente_email
+        
+    usuarios = cargar_usuarios()
+    usuario_db = next((u for u in usuarios if u.get("email") == email_reserva), None)
+    
+    if usuario_db:
+        if not is_admin:
+            nueva_reserva["cliente"] = usuario_db.get("nombre", session.get("cliente_nombre", "Cliente"))
+            nueva_reserva["telefono"] = usuario_db.get("telefono", session.get("cliente_telefono", "Sin teléfono"))
+    elif not is_admin:
         nueva_reserva["cliente"] = session.get("cliente_nombre", "Cliente")
         nueva_reserva["telefono"] = session.get("cliente_telefono", "Sin teléfono")
         
     data["reservas"].append(nueva_reserva)
     guardar(data)
     
-    # Enviar correo a la dueña
+    # Notificar a la dueña siempre que se crea (simplificado)
     try:
-        # Extraer variables para el correo
-        cliente = nueva_reserva.get("cliente", "Cliente")
-        telefono = nueva_reserva.get("telefono", "Sin teléfono")
-        fecha = nueva_reserva.get("fecha", "Sin fecha")
-        inicio = nueva_reserva.get("inicio", "Sin hora")
-        servicio = nueva_reserva.get("servicio", "Servicio no especificado")
-        nota = nueva_reserva.get("nota", "Sin nota")
-        
-        try:
-            fecha_str = datetime.strptime(fecha, "%Y-%m-%d").strftime("%d/%m/%Y") if fecha != "Sin fecha" else fecha
-        except:
-            fecha_str = fecha
-        
-        # Enviar correo a la misma cuenta configurada
-        msg = Message(f'NUEVA CITA: {cliente} - {fecha_str} {inicio}',
+        msg = Message(f'NUEVA CITA: {nueva_reserva.get("cliente")} - {nueva_reserva.get("fecha")} {nueva_reserva.get("inicio")}',
                       sender=app.config['MAIL_USERNAME'],
-                      recipients=[app.config['MAIL_USERNAME']]) # Lo recibe la dueña (ella misma)
-        
-        msg.body = f'''¡Felicidades! Se ha registrado una nueva cita en Girls Date.
-
-Detalles de la Cita:
----------------------------
-- Cliente: {cliente}
-- Email Cliente: {cliente_email}
-- Teléfono: {telefono}
-- Fecha: {fecha_str}
-- Hora: {inicio}
-- Servicio: {servicio}
-- Nota: {nota}
----------------------------
-'''
+                      recipients=[app.config['MAIL_USERNAME']])
+        msg.body = f"Nueva reserva de {nueva_reserva.get('cliente')} ({email_reserva}) para el {nueva_reserva.get('fecha')} a las {nueva_reserva.get('inicio')}."
         mail.send(msg)
-        
-        # Enviar correo de confirmación a la clienta
-        msg_cliente = Message(f'Confirmación de Reserva en Girls Date',
-                      sender=app.config['MAIL_USERNAME'],
-                      recipients=[cliente_email])
-        
-        msg_cliente.body = f'''¡Hola {cliente}!
-
-Tu cita en Girls Date ha sido reservada con éxito. Aquí tienes los detalles:
-
-📅 Fecha: {fecha_str}
-⏰ Hora: {inicio}
-💅 Servicio: {servicio}
-
-¡Te esperamos!
-El equipo de Girls Date.
-'''
-        mail.send(msg_cliente)
-        
-
     except Exception as e:
-        print(f"Error al enviar aviso a la dueña: {e}")
+        print(f"Error admin mail: {e}")
+        
+    # Enviar correo de confirmación a la clienta usando el helper
+    enviar_notificacion_cita(email_reserva, nueva_reserva.get("cliente", "Clienta"), "creada", nueva_reserva)
 
     return "ok"
 
@@ -598,8 +603,33 @@ def admin():
 @app.route("/eliminar",methods=["POST"])
 def eliminar():
     d=cargar()
-    d["reservas"].pop(request.json["index"])
+    idx = request.json["index"]
+    
+    # Enviar correo de cancelación si tiene email y no es una reserva muy antigua
+    reserva = d["reservas"][idx]
+    if "email" in reserva:
+        enviar_notificacion_cita(reserva["email"], reserva.get("cliente", "Clienta"), "eliminada", reserva)
+        
+    d["reservas"].pop(idx)
     guardar(d)
+    return "ok"
+
+@app.route("/modificar", methods=["POST"])
+def modificar():
+    d = cargar()
+    req = request.json
+    idx = int(req["index"])
+    
+    reserva = d["reservas"][idx]
+    reserva["fecha"] = req["fecha"]
+    reserva["inicio"] = req["hora"]
+    reserva["servicio"] = req["servicio"]
+    
+    guardar(d)
+    
+    if "email" in reserva:
+        enviar_notificacion_cita(reserva["email"], reserva.get("cliente", "Clienta"), "modificada", reserva)
+        
     return "ok"
 
 

@@ -29,15 +29,8 @@
         }
     ],
     "extras": [],
-    "bloqueados": [
-        {
-            "fecha": "2026-02-20",
-            "hora": "18:30"
-        }
-    ],
+    "bloqueados": [],
     "dias_bloqueados": [
-        "",
-        "2026-02-21",
-        "2026-02-22"
+        ""
     ]
 }
