@@ -219,9 +219,30 @@ def generar_horas(fecha):
 def home():
     d=cargar()
     dias_extras=list(set([e["fecha"] for e in d.get("extras",[])]))
-    cliente_nombre = session.get("cliente_nombre")
+    
+    # Obtener info completa del usuario si hay sesión
     cliente_email = session.get("cliente_email")
-    return render_template("index.html",servicios=servicios,dias_extras=dias_extras, cliente_nombre=cliente_nombre, cliente_email=cliente_email)
+    usuario_db = None
+    
+    if cliente_email:
+        usuarios = cargar_usuarios()
+        usuario_db = next((u for u in usuarios if u["email"] == cliente_email), None)
+        if not usuario_db:
+            usuario_db = {
+                "nombre": session.get("cliente_nombre", ""),
+                "email": cliente_email,
+                "telefono": session.get("cliente_telefono", ""),
+                "cumpleanos": "",
+                "foto": ""
+            }
+            
+    return render_template("index.html",
+        servicios=servicios,
+        dias_extras=dias_extras, 
+        cliente_nombre=session.get("cliente_nombre"), 
+        cliente_email=cliente_email,
+        usuario=usuario_db
+    )
 
 @app.route("/horarios")
 def horarios():

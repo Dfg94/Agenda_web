@@ -12,7 +12,87 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-    <link rel="stylesheet" href="/static/style.css?v=13">
+    <link rel="stylesheet" href="/static/style.css?v=14">
+    <style>
+        /* Estilos Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #888;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.activa {
+            color: #e84b7a;
+            border-bottom-color: #e84b7a;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.activa {
+            display: block;
+        }
+
+        /* Estilos Perfil */
+        .perfil-form input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .perfil-form input:disabled {
+            background-color: #f5f5f5;
+            color: #888;
+        }
+
+        .perfil-form label {
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .avatar-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e84b7a;
+            margin-bottom: 10px;
+            background-color: #f0f0f0;
+        }
+
+        .btn-guardar {
+            width: 100%;
+            padding: 15px;
+            background-color: #e84b7a;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -38,47 +118,90 @@
         <h1>Girls Date</h1>
         <p class="subtitle">Beauty Studio</p>
 
-        <div class="calendar">
-            <div class="cal-header">
-                <button onclick="mes(-1)">‹</button>
-                <span id="mesTitulo"></span>
-                <button onclick="mes(1)">›</button>
-            </div>
-
-            <div class="semana">
-                <div>Lun</div>
-                <div>Mar</div>
-                <div>Mié</div>
-                <div>Jue</div>
-                <div>Vie</div>
-                <div>Sáb</div>
-                <div>Dom</div>
-            </div>
-
-            <div class="dias" id="dias"></div>
-        </div>
-
-
-        <h2>Horarios disponibles</h2>
-        <div id="horarios"></div>
-
-        <h2>Reservar turno</h2>
-
-        <textarea id="nota" placeholder="¿Alguna nota o petición de la cita? (Opcional)" <textarea id="nota"
-            placeholder="¿Alguna nota o petición de la cita? (Opcional)"
-            style="margin-top:10px; width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-family:inherit; font-size:16px; box-sizing:border-box; resize:vertical; min-height:80px;"></textarea>
-
-        <select id="servicio">
-            {% for s,d in servicios.items() %}
-            <option value="{{s}}">{{s}} ({{d}} min)</option>
-            {% endfor %}
-        </select>
-
         {% if cliente_nombre %}
-        <button onclick="reservar()">Reservar cita</button>
-        {% else %}
-        <button onclick="window.location.href='{{ url_for('login_cliente') }}'" style="background: #a0a0a0;">Inicia
-            sesión para reservar</button>
+        <div class="tabs">
+            <div class="tab activa" onclick="switchTab('reserva', this)">📅 Reservar Cita</div>
+            <div class="tab" onclick="switchTab('perfil', this)">👤 Mi Perfil</div>
+        </div>
+        {% endif %}
+
+        <!-- Contenido principal: Reserva -->
+        <div id="tab-reserva" class="tab-content activa">
+
+            <div class="calendar">
+                <div class="cal-header">
+                    <button onclick="mes(-1)">‹</button>
+                    <span id="mesTitulo"></span>
+                    <button onclick="mes(1)">›</button>
+                </div>
+
+                <div class="semana">
+                    <div>Lun</div>
+                    <div>Mar</div>
+                    <div>Mié</div>
+                    <div>Jue</div>
+                    <div>Vie</div>
+                    <div>Sáb</div>
+                    <div>Dom</div>
+                </div>
+
+                <div class="dias" id="dias"></div>
+            </div>
+
+
+            <h2>Horarios disponibles</h2>
+            <div id="horarios"></div>
+
+            <h2>Reservar turno</h2>
+
+            <textarea id="nota" placeholder="¿Alguna nota o petición de la cita? (Opcional)"
+                style="margin-top:10px; width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-family:inherit; font-size:16px; box-sizing:border-box; resize:vertical; min-height:80px;"></textarea>
+
+            <select id="servicio">
+                {% for s,d in servicios.items() %}
+                <option value="{{s}}">{{s}} ({{d}} min)</option>
+                {% endfor %}
+            </select>
+
+            {% if cliente_nombre %}
+            <button onclick="reservar()">Reservar cita</button>
+            {% else %}
+            <button onclick="window.location.href='{{ url_for('login_cliente') }}'" style="background: #a0a0a0;">Inicia
+                sesión para reservar</button>
+            {% endif %}
+
+        </div> <!-- Cierre tab-reserva -->
+
+        {% if usuario %}
+        <!-- Contenido Perfil -->
+        <div id="tab-perfil" class="tab-content">
+            <div class="perfil-form">
+                <div class="avatar-container">
+                    <img id="avatar-img" class="avatar-preview"
+                        src="{{ usuario.foto if usuario.foto else 'https://ui-avatars.com/api/?name=' + usuario.nombre + '&background=e84b7a&color=fff' }}"
+                        alt="Foto de perfil">
+                    <br>
+                    <label for="foto-input" style="cursor:pointer; color:#e84b7a; text-decoration:underline;">Cambiar
+                        foto</label>
+                    <input type="file" id="foto-input" accept="image/*" style="display:none;"
+                        onchange="previewImagen(event)">
+                </div>
+
+                <label>Nombre y Apellido</label>
+                <input type="text" value="{{ usuario.nombre }}" disabled>
+
+                <label>Correo Electrónico</label>
+                <input type="email" id="perfil-email" value="{{ usuario.email }}" required>
+
+                <label>Teléfono</label>
+                <input type="tel" id="perfil-telefono" value="{{ usuario.telefono }}">
+
+                <label>Fecha de Cumpleaños</label>
+                <input type="date" id="perfil-cumple" value="{{ usuario.cumpleanos }}">
+
+                <button class="btn-guardar" onclick="guardarPerfil()">Guardar Cambios</button>
+            </div>
+        </div> <!-- Cierre tab-perfil -->
         {% endif %}
 
     </div>
@@ -211,6 +334,72 @@
         }
 
         renderCalendar();
+
+        {% if usuario %}
+        // Lógica Pestañas y Perfil 
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('activa'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('activa'));
+
+            el.classList.add('activa');
+            document.getElementById('tab-' + tabId).classList.add('activa');
+        }
+
+        let base64Foto = "{{ usuario.foto|default('', true) }}";
+
+        function previewImagen(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('avatar-img').src = e.target.result;
+                    base64Foto = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function guardarPerfil() {
+            const email = document.getElementById('perfil-email').value;
+            const telefono = document.getElementById('perfil-telefono').value;
+            const cumple = document.getElementById('perfil-cumple').value;
+
+            if (!email) {
+                alert("El correo es obligatorio.");
+                return;
+            }
+
+            const btn = document.querySelector('.btn-guardar');
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            try {
+                const r = await fetch("/actualizar_perfil", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: email,
+                        telefono: telefono,
+                        cumpleanos: cumple,
+                        foto: base64Foto
+                    })
+                });
+
+                const json = await r.json();
+
+                if (r.ok) {
+                    alert("¡" + json.mensaje + "!");
+                } else {
+                    alert("Error: " + (json.error || "No se pudo actualizar."));
+                }
+            } catch (e) {
+                alert("Error de conexión al guardar el perfil.");
+            }
+
+            btn.innerText = "Guardar Cambios";
+            btn.disabled = false;
+        }
+        {% endif %}
 
     </script>
 
