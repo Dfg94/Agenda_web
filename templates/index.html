@@ -64,9 +64,8 @@
 
         <h2>Reservar turno</h2>
 
-        <input id="cliente" placeholder="Nombre y Apellido de cliente">
-        <input type="tel" id="telefono" placeholder="Teléfono" style="margin-top:10px;">
-        <textarea id="nota" placeholder="¿Alguna nota o petición de la cita? (Opcional)"
+        <textarea id="nota" placeholder="¿Alguna nota o petición de la cita? (Opcional)" <textarea id="nota"
+            placeholder="¿Alguna nota o petición de la cita? (Opcional)"
             style="margin-top:10px; width:100%; padding:12px; border-radius:12px; border:1px solid #ddd; font-family:inherit; font-size:16px; box-sizing:border-box; resize:vertical; min-height:80px;"></textarea>
 
         <select id="servicio">
@@ -178,13 +177,11 @@
 
         async function reservar() {
 
-            if (!fechaSeleccionada || !horaSel || !cliente.value || !telefono.value) {
-                alert("Por favor, completa tu nombre y número de teléfono, selecciona día y hora.")
+            if (!fechaSeleccionada || !horaSel) {
+                alert("Por favor selecciona un día y horario antes de reservar.")
                 return
             }
 
-            const nombreCliente = cliente.value;
-            const telCliente = telefono.value;
             const notaCita = nota.value;
             const servicioDeseado = servicio.options[servicio.selectedIndex].text;
 
@@ -194,8 +191,6 @@
                 body: JSON.stringify({
                     fecha: fechaSeleccionada,
                     inicio: horaSel,
-                    cliente: nombreCliente,
-                    telefono: telCliente,
                     nota: notaCita,
                     servicio: servicio.value
                 })
@@ -205,8 +200,6 @@
                 alert("¡Cita reservada con éxito!");
 
                 horaSel = null
-                cliente.value = ""
-                telefono.value = ""
                 nota.value = ""
                 cargar()
             } else if (r && r.status === 401) {

@@ -238,7 +238,20 @@ def crear():
 
     data=cargar()
     nueva_reserva = request.json
-    nueva_reserva["email"] = cliente_email # Forzar que la reserva tenga el email del usuario
+    
+    # Inyectar datos del perfil del usuario (ignorar cliente y telefono del frontend)
+    nueva_reserva["email"] = cliente_email
+    
+    # Buscar en la DB de usuarios para asegurar tener los datos mas recientes
+    usuarios = cargar_usuarios()
+    usuario_db = next((u for u in usuarios if u["email"] == cliente_email), None)
+    if usuario_db:
+        nueva_reserva["cliente"] = usuario_db.get("nombre", session.get("cliente_nombre", "Cliente"))
+        nueva_reserva["telefono"] = usuario_db.get("telefono", session.get("cliente_telefono", "Sin teléfono"))
+    else:
+        nueva_reserva["cliente"] = session.get("cliente_nombre", "Cliente")
+        nueva_reserva["telefono"] = session.get("cliente_telefono", "Sin teléfono")
+        
     data["reservas"].append(nueva_reserva)
     guardar(data)
     
@@ -306,6 +319,7 @@ def registro():
     error = None
     if request.method == "POST":
         nombre = request.form.get("nombre")
+        telefono = request.form.get("telefono")
         email = request.form.get("email")
         password = request.form.get("password")
         
@@ -314,11 +328,12 @@ def registro():
         # Verificar si el email ya existe
         if any(u["email"] == email for u in usuarios):
             error = "Este correo ya está registrado."
-        elif not nombre or not email or not password:
+        elif not nombre or not email or not password or not telefono:
             error = "Todos los campos son obligatorios."
         else:
             nuevo_usuario = {
                 "nombre": nombre,
+                "telefono": telefono,
                 "email": email,
                 "password": generate_password_hash(password)
             }
@@ -328,6 +343,7 @@ def registro():
             # Iniciar sesión automáticamente al registrarse
             session["cliente_email"] = email
             session["cliente_nombre"] = nombre
+            session["cliente_telefono"] = telefono
             return redirect(url_for("home"))
             
     return render_template("registro.html", error=error)
@@ -345,6 +361,7 @@ def login_cliente():
         if usuario_encontrado and check_password_hash(usuario_encontrado["password"], password):
             session["cliente_email"] = usuario_encontrado["email"]
             session["cliente_nombre"] = usuario_encontrado["nombre"]
+            session["cliente_telefono"] = usuario_encontrado.get("telefono", "")
             return redirect(url_for("home"))
         else:
             error = "Correo o contraseña incorrectos"
@@ -355,6 +372,7 @@ def login_cliente():
 def logout_cliente():
     session.pop("cliente_email", None)
     session.pop("cliente_nombre", None)
+    session.pop("cliente_telefono", None)
     return redirect(url_for("home"))
 
 @app.route("/recuperar_password", methods=["GET", "POST"])
