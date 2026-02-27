@@ -108,6 +108,12 @@ servicios={
 "arreglo":15
 }
 
+def subir_foto_perfil(fotoBase64, email):
+    # En un entorno real se subiria a S3 o se guardaría en disco permanente (/data/fotos)
+    # Para simplicidad guardaremos la cadena base64 en usuarios.json
+    # Se recomienda limitar el tamaño del input en el frontend
+    return fotoBase64
+
 def cargar():
     if not os.path.exists(archivo):
         return {"reservas":[],"extras":[],"bloqueados":[],"dias_bloqueados":[]}
@@ -457,30 +463,82 @@ def mis_turnos():
     cliente_email = session.get("cliente_email")
     if not cliente_email:
         return redirect(url_for("login_cliente"))
-
-    d = cargar()
-    mis_reservas = [r for r in d["reservas"] if r.get("email") == cliente_email]
-
-    ahora = datetime.now()
-    proximos = []
-    historial = []
-
-    for r in mis_reservas:
-        fecha_hora_str = f"{r['fecha']} {r['inicio']}"
-        fecha_hora_obj = datetime.strptime(fecha_hora_str, "%Y-%m-%d %H:%M")
-
-        if fecha_hora_obj >= ahora:
-            proximos.append(r)
-        else:
-            historial.append(r)
-
-    # Ordenar próximos del más cercano al más lejano
-    proximos.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"))
+        
+    data = cargar()
+    mis_reservas = [r for r in data.get("reservas", []) if r.get("email") == cliente_email]
     
-    # Ordenar historial del más reciente al más antiguo
-    historial.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"), reverse=True)
+    # Ordenar mis turnos
+    hoy = datetime.now()
+    futuras = []
+    pasadas = []
+    for r in mis_reservas:
+        fecha_hora = datetime.strptime(f"{r['fecha']} {r['inicio']}", "%Y-%m-%d %H:%M")
+        if fecha_hora >= hoy:
+            futuras.append(r)
+        else:
+            pasadas.append(r)
+            
+    futuras.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"))
+    pasadas.sort(key=lambda x: datetime.strptime(f"{x['fecha']} {x['inicio']}", "%Y-%m-%d %H:%M"), reverse=True)
+    
+    # Obtener info del usuario
+    usuarios = cargar_usuarios()
+    usuario_db = next((u for u in usuarios if u["email"] == cliente_email), None)
+    if not usuario_db:
+        usuario_db = {
+            "nombre": session.get("cliente_nombre", ""),
+            "email": cliente_email,
+            "telefono": session.get("cliente_telefono", ""),
+            "cumpleanos": "",
+            "foto": ""
+        }
 
-    return render_template("mis_turnos.html", proximos=proximos, historial=historial, cliente_nombre=session.get("cliente_nombre"))
+    return render_template("mis_turnos.html", futuras=futuras, pasadas=pasadas, usuario=usuario_db)
+
+@app.route("/actualizar_perfil", methods=["POST"])
+def actualizar_perfil():
+    cliente_email = session.get("cliente_email")
+    if not cliente_email:
+        return {"error": "No autorizado"}, 401
+        
+    data = request.json
+    nuevo_email = data.get("email")
+    nuevo_telefono = data.get("telefono")
+    nuevo_cumpleanos = data.get("cumpleanos")
+    nueva_foto = data.get("foto") # Base64 string
+    
+    usuarios = cargar_usuarios()
+    usuario = next((u for u in usuarios if u["email"] == cliente_email), None)
+    
+    if not usuario:
+        return {"error": "Usuario no encontrado"}, 404
+        
+    # Chequear si intentan cambiar el email a uno existente
+    if nuevo_email and nuevo_email != cliente_email:
+        if any(u["email"] == nuevo_email for u in usuarios):
+            return {"error": "El nuevo correo ya está en uso por otra persona"}, 400
+        # Actualizar el email implica actualizar la sesion y potencialmente las reservas historicas
+        # Simplificación: actualizaremos todo.
+        viejo_email = cliente_email
+        usuario["email"] = nuevo_email
+        session["cliente_email"] = nuevo_email
+        
+        # Actualizar reservas con el nuevo email
+        db = cargar()
+        for r in db["reservas"]:
+            if r.get("email") == viejo_email:
+                r["email"] = nuevo_email
+        guardar(db)
+            
+    usuario["telefono"] = nuevo_telefono
+    session["cliente_telefono"] = nuevo_telefono
+    usuario["cumpleanos"] = nuevo_cumpleanos
+    
+    if nueva_foto:
+        usuario["foto"] = nueva_foto
+        
+    guardar_usuarios(usuarios)
+    return {"mensaje": "Perfil actualizado con éxito"}
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
