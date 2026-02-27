@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#e84b7a">
+    <meta name="theme-color" content="#8b5a2b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Girls Date">
@@ -30,8 +30,8 @@
         }
 
         .tab.activa {
-            color: #e84b7a;
-            border-bottom-color: #e84b7a;
+            color: #8b5a2b;
+            border-bottom-color: #8b5a2b;
         }
 
         .tab-content {
@@ -75,7 +75,7 @@
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #e84b7a;
+            border: 3px solid #8b5a2b;
             margin-bottom: 10px;
             background-color: #f0f0f0;
         }
@@ -83,7 +83,7 @@
         .btn-guardar {
             width: 100%;
             padding: 15px;
-            background-color: #e84b7a;
+            background-color: #8b5a2b;
             color: white;
             border: none;
             border-radius: 25px;
@@ -104,13 +104,13 @@
             <span style="color: #666;">Hola, <b>{{ cliente_nombre }}</b></span>
             <br><br>
             <a href="{{ url_for('mis_turnos') }}"
-                style="color: #fff; background-color: #e84b7a; padding: 5px 12px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-right: 10px;">📅
+                style="color: #fff; background-color: #8b5a2b; padding: 5px 12px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-right: 10px;">📅
                 Mis Citas</a>
             <a href="{{ url_for('logout_cliente') }}"
-                style="margin-left: 10px; color: #ff4b4b; text-decoration: none; font-weight: bold;">Cerrar sesión</a>
+                style="margin-left: 10px; color: #a52a2a; text-decoration: none; font-weight: bold;">Cerrar sesión</a>
             {% else %}
             <a href="{{ url_for('login_cliente') }}"
-                style="color: #e84b7a; text-decoration: none; font-weight: bold; border: 1px solid #e84b7a; padding: 5px 10px; border-radius: 20px;">Iniciar
+                style="color: #8b5a2b; text-decoration: none; font-weight: bold; border: 1px solid #8b5a2b; padding: 5px 10px; border-radius: 20px;">Iniciar
                 Sesión</a>
             {% endif %}
         </div>
@@ -178,10 +178,10 @@
             <div class="perfil-form">
                 <div class="avatar-container">
                     <img id="avatar-img" class="avatar-preview"
-                        src="{{ usuario.foto if usuario.foto else 'https://ui-avatars.com/api/?name=' + usuario.nombre + '&background=e84b7a&color=fff' }}"
+                        src="{{ usuario.foto if usuario.foto else 'https://ui-avatars.com/api/?name=' + usuario.nombre + '&background=8b5a2b&color=fff' }}"
                         alt="Foto de perfil">
                     <br>
-                    <label for="foto-input" style="cursor:pointer; color:#e84b7a; text-decoration:underline;">Cambiar
+                    <label for="foto-input" style="cursor:pointer; color:#8b5a2b; text-decoration:underline;">Cambiar
                         foto</label>
                     <input type="file" id="foto-input" accept="image/*" style="display:none;"
                         onchange="previewImagen(event)">

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#e84b7a">
+    <meta name="theme-color" content="#8b5a2b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Panel Admin</title>
     <link rel="manifest" href="/static/manifest.json">
@@ -26,8 +26,8 @@
         }
 
         .tab.activa {
-            color: #e84b7a;
-            border-bottom-color: #e84b7a;
+            color: #8b5a2b;
+            border-bottom-color: #8b5a2b;
         }
 
         .tab-content {
@@ -56,7 +56,7 @@
             display: none;
             padding: 15px;
             background: #fff;
-            border: 1px solid #e84b7a;
+            border: 1px solid #8b5a2b;
             border-radius: 8px;
             margin-top: 10px;
         }
@@ -186,9 +186,9 @@
                 <strong>{{ u.nombre }}</strong>
                 <div id="detalles-{{ u.email }}" class="cliente-detalles">
                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                        <img src="{{ u.foto if u.foto else 'https://ui-avatars.com/api/?name=' + u.nombre + '&background=e84b7a&color=fff' }}"
+                        <img src="{{ u.foto if u.foto else 'https://ui-avatars.com/api/?name=' + u.nombre + '&background=8b5a2b&color=fff' }}"
                             alt="Foto de perfil de {{ u.nombre }}"
-                            style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #e84b7a;">
+                            style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #8b5a2b;">
                         <div>
                             <p style="margin: 0;">📧 Email: {{ u.email }}</p>
                             <p style="margin: 5px 0 0 0;">📞 Teléfono: {{ u.telefono if u.telefono else 'No registrado'
