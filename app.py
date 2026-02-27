@@ -10,6 +10,14 @@ app=Flask(__name__)
 app.secret_key="agenda_girlsdate_secreta_123"
 serializer = URLSafeTimedSerializer(app.secret_key)
 
+@app.template_filter('formato_fecha')
+def formato_fecha(fecha_str):
+    try:
+        return datetime.strptime(fecha_str, "%Y-%m-%d").strftime("%d/%m/%Y")
+    except:
+        return fecha_str
+
+
 # Configuración de correo
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
@@ -29,6 +37,7 @@ def enviar_recordatorios():
             usuarios = cargar_usuarios()
             
             manana = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+            manana_str = (datetime.now() + timedelta(days=1)).strftime("%d/%m/%Y")
             reservas_manana = [r for r in reservas if r.get("fecha") == manana]
             
             enviados = 0
@@ -52,7 +61,7 @@ def enviar_recordatorios():
 
 Este es un recordatorio de que tienes una cita programada para mañana con nosotros.
 
-📅 Fecha: Mañana ({manana})
+📅 Fecha: Mañana ({manana_str})
 ⏰ Hora: {hora}
 💅 Servicio: {servicio}
 
@@ -243,8 +252,13 @@ def crear():
         servicio = nueva_reserva.get("servicio", "Servicio no especificado")
         nota = nueva_reserva.get("nota", "Sin nota")
         
+        try:
+            fecha_str = datetime.strptime(fecha, "%Y-%m-%d").strftime("%d/%m/%Y") if fecha != "Sin fecha" else fecha
+        except:
+            fecha_str = fecha
+        
         # Enviar correo a la misma cuenta configurada
-        msg = Message(f'NUEVA CITA: {cliente} - {fecha} {inicio}',
+        msg = Message(f'NUEVA CITA: {cliente} - {fecha_str} {inicio}',
                       sender=app.config['MAIL_USERNAME'],
                       recipients=[app.config['MAIL_USERNAME']]) # Lo recibe la dueña (ella misma)
         
@@ -255,7 +269,7 @@ Detalles de la Cita:
 - Cliente: {cliente}
 - Email Cliente: {cliente_email}
 - Teléfono: {telefono}
-- Fecha: {fecha}
+- Fecha: {fecha_str}
 - Hora: {inicio}
 - Servicio: {servicio}
 - Nota: {nota}
@@ -272,7 +286,7 @@ Detalles de la Cita:
 
 Tu cita en Girls Date ha sido reservada con éxito. Aquí tienes los detalles:
 
-📅 Fecha: {fecha}
+📅 Fecha: {fecha_str}
 ⏰ Hora: {inicio}
 💅 Servicio: {servicio}
 

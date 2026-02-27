@@ -49,7 +49,7 @@
 
                 {% for e in extras %}
                 <div class="mini">
-                    {{e.fecha}} — {{e.hora}}
+                    {{e.fecha | formato_fecha}} — {{e.hora}}
                     <button onclick="delExtra({{loop.index0}})">X</button>
                 </div>
                 {% endfor %}
@@ -64,7 +64,7 @@
 
                 {% for b in bloqueados %}
                 <div class="mini">
-                    {{b.fecha}} — {{b.hora}}
+                    {{b.fecha | formato_fecha}} — {{b.hora}}
                     <button onclick="desbloquear({{loop.index0}})">Quitar</button>
                 </div>
                 {% endfor %}
@@ -78,7 +78,7 @@
 
                 {% for d in dias_bloqueados %}
                 <div class="mini">
-                    {{d}}
+                    {{d | formato_fecha}}
                     <button onclick="desbloquearDia({{loop.index0}})">Quitar</button>
                 </div>
                 {% endfor %}
@@ -237,8 +237,12 @@
 
         function adminMostrarCitas(fecha) {
             const citas = todasReservas.filter(r => r.fecha === fecha);
+
+            const partes = fecha.split('-');
+            const fechaFormateada = partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : fecha;
+
             if (citas.length === 0) {
-                adminLista.innerHTML = `<p style="text-align:center;opacity:0.45;font-size:0.9em;padding:10px 0;">Sin citas el ${fecha}</p>`;
+                adminLista.innerHTML = `<p style="text-align:center;opacity:0.45;font-size:0.9em;padding:10px 0;">Sin citas el ${fechaFormateada}</p>`;
                 return;
             }
             adminLista.innerHTML = citas.map(r => {

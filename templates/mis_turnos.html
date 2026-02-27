@@ -69,7 +69,7 @@
         <div class="turno-card">
             {% if loop.first %}<span class="badge-proximo">Siguiente cita</span>{% endif %}
             <div class="turno-titulo">{{ r.servicio }}</div>
-            <p class="turno-detalle">📅 Fecha: <b>{{ r.fecha }}</b></p>
+            <p class="turno-detalle">📅 Fecha: <b>{{ r.fecha | formato_fecha }}</b></p>
             <p class="turno-detalle">⏰ Hora: <b>{{ r.inicio }}</b></p>
             {% if r.nota %}
             <p class="turno-detalle">📝 Nota: {{ r.nota }}</p>
@@ -85,7 +85,7 @@
         {% for r in historial %}
         <div class="turno-card pasado">
             <div class="turno-titulo" style="color:#555">{{ r.servicio }}</div>
-            <p class="turno-detalle">📅 {{ r.fecha }} a las {{ r.inicio }}</p>
+            <p class="turno-detalle">📅 {{ r.fecha | formato_fecha }} a las {{ r.inicio }}</p>
         </div>
         {% endfor %}
         {% else %}
