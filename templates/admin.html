@@ -185,8 +185,16 @@
             <div class="cliente-item" onclick="toggleClienteDetalles('{{ u.email }}')">
                 <strong>{{ u.nombre }}</strong>
                 <div id="detalles-{{ u.email }}" class="cliente-detalles">
-                    <p>📧 Email: {{ u.email }}</p>
-                    <p>📞 Teléfono: {{ u.telefono if u.telefono else 'No registrado' }}</p>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <img src="{{ u.foto if u.foto else 'https://ui-avatars.com/api/?name=' + u.nombre + '&background=e84b7a&color=fff' }}"
+                            alt="Foto de perfil de {{ u.nombre }}"
+                            style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #e84b7a;">
+                        <div>
+                            <p style="margin: 0;">📧 Email: {{ u.email }}</p>
+                            <p style="margin: 5px 0 0 0;">📞 Teléfono: {{ u.telefono if u.telefono else 'No registrado'
+                                }}</p>
+                        </div>
+                    </div>
                     <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
                     <h4>Próximas Citas</h4>
                     <div id="futuras-{{ u.email }}"></div>
